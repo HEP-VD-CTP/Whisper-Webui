@@ -1,0 +1,11 @@
+{
+  "name": "@whisper-webui/main",
+  "type": "module",
+  "repository": "https://github.com/HEP-VD-CSeL/Whisper-Webui",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {},
+  "dependencies": {}
+}

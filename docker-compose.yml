@@ -1,0 +1,43 @@
+networks:
+  whisper_network:
+    driver: bridge
+  nginx_network:
+    driver: bridge
+
+services:
+#######################
+# Development section #
+#######################
+  nginx-dev:
+    image: nginx:latest
+    container_name: whisper-webui-nginx-dev
+    ports:
+      - "${WHISPER_WEBUI_HTTPS_PORT}:443"
+      - "24678:24678" # quasar ws dev port
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${NGINX_CERTIFICATE_LOCATION}:/etc/nginx/ssl/nginx.crt:ro
+      - ${NGINX_CERTIFICATE_KEY_LOCATION}:/etc/nginx/ssl/nginx.key:ro
+      - "${WHISPER_WEBUI_VOLUME_PATH}/nginx:/data/nginx"
+    networks:
+      - nginx_network
+
+  frontend-dev:
+    container_name: whisper-webui-frontend-dev
+    build:
+      context: .
+      dockerfile: ./packages/frontend/Dockerfile
+    environment:
+      - "NODE_ENV=${WHISPER_WEBUI_ENV}"
+    expose:
+      - "8000"  # http
+      - "24678" # ws
+    volumes:
+      - "${WHISPER_WEBUI_VOLUME_PATH}:/data"
+      - ./packages/frontend:/app/packages/frontend
+    networks:
+      - whisper_network
+      - nginx_network
+    command: npm run dev
+
+
