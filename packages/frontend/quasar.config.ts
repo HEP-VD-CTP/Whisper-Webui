@@ -24,7 +24,7 @@ export default defineConfig((ctx) => {
     // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
       // 'ionicons-v4',
-      // 'mdi-v7',
+      'mdi-v7',
       // 'fontawesome-v6',
       // 'eva-icons',
       // 'themify',
@@ -43,8 +43,10 @@ export default defineConfig((ctx) => {
       },
 
       typescript: {
-        strict: true,
-        vueShim: true
+        strict: false,
+        vueShim: true,
+        noUnusedLocals: false,
+        noUnusedParameters: false
         // extendTsConfig (tsConfig) {}
       },
 
@@ -57,7 +59,7 @@ export default defineConfig((ctx) => {
 
       // publicPath: '/',
       // analyze: true,
-      // env: {},
+      env: {},
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,
@@ -88,7 +90,7 @@ export default defineConfig((ctx) => {
     devServer: {
       //https: true,
       open: false, // opens browser window automatically
-      port: 8000,
+      port: 8000 ,
       host: '0.0.0.0',
     },
 

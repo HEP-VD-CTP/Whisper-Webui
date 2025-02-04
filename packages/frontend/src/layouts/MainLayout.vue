@@ -12,91 +12,117 @@
         />
 
         <q-toolbar-title>
-          Quasar App
+          {{ store.getTitle() }}
         </q-toolbar-title>
 
-        <div>Quasar v{{ $q.version }}</div>
+        <q-btn @click="settingsSelector=true" round dense flat icon="settings" />
+
       </q-toolbar>
     </q-header>
 
-    <q-drawer
-      v-model="leftDrawerOpen"
+    <q-drawer v-if="false"
+      v-model="drawer"
       show-if-above
       bordered
     >
-      <q-list>
-        <q-item-label
-          header
-        >
-          Essential Links
-        </q-item-label>
 
-        <EssentialLink
-          v-for="link in linksList"
-          :key="link.title"
-          v-bind="link"
-        />
-      </q-list>
     </q-drawer>
 
     <q-page-container>
       <router-view />
     </q-page-container>
+
+    <q-dialog persistent v-model="settingsSelector">
+      <q-card style="min-width: 350px;">
+        <q-card-section>
+          <div class="text-h6">{{ $t('misc.settings') }}</div>
+        </q-card-section>
+
+        <q-separator size="2px" inset class="" />
+
+        <q-card-section class="q-pt-none q-mt-sm">
+
+          <div class="row justify-center">
+            <p>{{ $t('misc.language') }}</p>
+          </div>
+
+          <div class="row justify-center">
+            <q-btn color="primary" :outline="!(store.language == 'en')" @click="setLanguage('en')" class="q-mr-sm">English</q-btn>
+            <q-btn color="primary" :outline="!(store.language == 'fr')" @click="setLanguage('fr')">Français</q-btn>
+          </div>
+
+          <div class="row justify-center q-mt-md">
+            <p>{{ $t('misc.appearance') }}</p>
+          </div>
+          
+          <div class="row justify-center">
+            <q-btn color="primary" :outline="store.getDarkMode()" @click="store.setDarkMode(false);q.dark.set(false)" class="q-mr-sm">Light Mode</q-btn>
+            <q-btn color="primary" :outline="!store.getDarkMode()" @click="store.setDarkMode(true);q.dark.set(true)">Dark Mode</q-btn>
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="OK" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-layout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import EssentialLink, { type EssentialLinkProps } from 'components/EssentialLink.vue';
+import { ref, onServerPrefetch, onMounted, onBeforeMount } from 'vue';
+import type { Ref} from 'vue';
+import { useQuasar, QVueGlobals } from 'quasar';
+import { whisperStore } from 'stores/WhisperStore';
+import { useI18n } from 'vue-i18n';
 
-const linksList: EssentialLinkProps[] = [
-  {
-    title: 'Docs',
-    caption: 'quasar.dev',
-    icon: 'school',
-    link: 'https://quasar.dev'
-  },
-  {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
-    icon: 'code',
-    link: 'https://github.com/quasarframework'
-  },
-  {
-    title: 'Discord Chat Channel',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'https://chat.quasar.dev'
-  },
-  {
-    title: 'Forum',
-    caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev'
-  },
-  {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev'
-  },
-  {
-    title: 'Facebook',
-    caption: '@QuasarFramework',
-    icon: 'public',
-    link: 'https://facebook.quasar.dev'
-  },
-  {
-    title: 'Quasar Awesome',
-    caption: 'Community Quasar projects',
-    icon: 'favorite',
-    link: 'https://awesome.quasar.dev'
+const { locale } = useI18n();
+const store = whisperStore();
+const q: QVueGlobals = useQuasar(); 
+const drawer = ref(false);
+const settingsSelector: Ref<boolean> = ref(false);
+
+//locale.value = 'fr';
+
+onServerPrefetch(() => {
+  // set the title of the page from the environment variable
+  store.setTitle(process.env.TITLE);
+});
+
+function setLanguage(lang: string): void{
+  locale.value = lang;
+  store.setLanguage(lang);
+}
+
+onBeforeMount(() => { 
+  // if the language is null, we try to detect the user language
+  if (!store.getLanguage()) {
+    const languages = navigator.languages || [navigator.language];
+    const preferredLanguage = languages.find(lang => lang.startsWith('en') || lang.startsWith('fr')) || 'en';
+    setLanguage(preferredLanguage.startsWith('fr') ? 'fr' : 'en');
   }
-];
+  else 
+    setLanguage(store.getLanguage());
+  
+  // display color mode selector
+  if (store.getDarkMode() == null){
+    settingsSelector.value = true;
+    store.setDarkMode(false);
+  }
+  else 
+    store.setDarkMode(store.getDarkMode());
 
-const leftDrawerOpen = ref(false);
+
+});
+
+onMounted(() => {
+  q.dark.set(store.getDarkMode());
+});
+
+
+
 
 function toggleLeftDrawer () {
-  leftDrawerOpen.value = !leftDrawerOpen.value;
+  drawer.value = !drawer.value;
 }
 </script>
