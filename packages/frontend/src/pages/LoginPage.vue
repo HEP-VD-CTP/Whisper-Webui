@@ -1,46 +1,57 @@
 <template>
     <q-page class="row items-center justify-evenly">
-      <example-component
-        title="login page"
-        active
-        :todos="todos"
-        :meta="meta"
-      ></example-component>
-    </q-page>
-  </template>
-  
-  <script setup lang="ts">
-  import { ref } from 'vue';
-  import type { Todo, Meta } from 'components/models';
-  import ExampleComponent from 'components/ExampleComponent.vue';
-  import dotenv from 'dotenv';
+      <q-card style="min-width: 350px;" flat :class="store.darkMode ? `bg-dark` : `bg-light`">
+        <q-card-section class="aligh-center">
+          <div class="row justify-center text-h6">{{ $t('login_page.login_page_title') }}</div>
+        </q-card-section>
+        
+        <q-separator size="2px" inset />
 
-  
-  const todos = ref<Todo[]>([
-    {
-      id: 1,
-      content: 'ct1'
-    },
-    {
-      id: 2,
-      content: 'ct2'
-    },
-    {
-      id: 3,
-      content: 'ct3'
-    },
-    {
-      id: 4,
-      content: 'ct4'
-    },
-    {
-      id: 5,
-      content: 'ct5'
-    }
-  ]);
-  
-  const meta = ref<Meta>({
-    totalCount: 1200
-  });
-  </script>
+        <q-card-section class="q-pt-none q-mt-md">
+          <div class="row justify-center">
+            <p class="text-weight-medium">{{ $t('login_page.connect_with_local_account') }}</p>
+          </div>
+        
+          <q-form @submit="login">
+            <q-input v-model="email" :label="t('user.email')" filled type="email" :rules="lib.rules.email(t('validation.email.mandatory'), t('validation.email.maxLength'), t('validation.email.valid'))" />
+            <q-input v-model="password" filled :type="isPwd ? 'password' : 'text'" :label="t('user.password')" :rules="lib.rules.pwd(t('validation.password.mandatory'), t('validation.password.length'))">
+              <template v-slot:append>
+                <q-icon :name="isPwd ? 'visibility_off' : 'visibility'" class="cursor-pointer" @click="isPwd = !isPwd"/>
+              </template>
+            </q-input>
+        
+            <div class="q-mt-lg text-center">
+              <q-btn color="primary" :label="t('login_page.login_button')" type="submit" icon-right="login" :loading="btnLoading"/>
+            </div>
+          </q-form>
+        </q-card-section>
+    </q-card>
+  </q-page>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+
+import { whisperStore } from 'stores/WhisperStore';
+import { useI18n } from 'vue-i18n';
+
+import lib  from 'src/lib/index';
+
+const { t } = useI18n();
+const store = whisperStore();
+
+const email      = ref(``);
+const password   = ref(``);
+const isPwd      = ref(true);
+const btnLoading = ref(false);
+
+async function login(): Promise<void> {
+
+}
+
+onMounted(() => {
+  document.title = `${t('login_page.login_page_title')} - ${store.getTitle()}`;
+});
+
+</script>
   

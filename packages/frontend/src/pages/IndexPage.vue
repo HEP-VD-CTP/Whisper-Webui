@@ -1,7 +1,7 @@
 <template>
   <q-page class="row items-center justify-evenly">
     <example-component
-      title="Example components"
+      title="Example componentsss"
       active
       :todos="todos"
       :meta="meta"
@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import type { Todo, Meta } from 'components/models';
 import ExampleComponent from 'components/ExampleComponent.vue';
 
@@ -39,5 +39,8 @@ const todos = ref<Todo[]>([
 
 const meta = ref<Meta>({
   totalCount: 1200
+});
+
+onMounted(() => {
 });
 </script>

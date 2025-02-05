@@ -27,12 +27,15 @@ export const whisperStore = defineStore('whisper', () => {
     localStorage.setItem('language', lang);
   }
 
+  const darkMode: Ref<boolean|null> = ref(null);
+
   // dark mode
   function getDarkMode(): boolean|null {
     return JSON.parse(localStorage.getItem('darkMode'));
   }
 
   function setDarkMode(mode: boolean): void {
+    darkMode.value = mode;
     localStorage.setItem('darkMode', JSON.stringify(mode));
   }
 
@@ -45,6 +48,7 @@ export const whisperStore = defineStore('whisper', () => {
     getLanguage,
     setLanguage,
 
+    darkMode,
     getDarkMode,
     setDarkMode
   }

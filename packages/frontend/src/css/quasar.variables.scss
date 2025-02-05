@@ -16,8 +16,17 @@ $primary   : #00A4E4;
 $secondary : #26A69A;
 $accent    : #9C27B0;
 
+
 $dark      : #262626;
-$dark-page : #1E1E1E;
+$dark-page : #1E1E1E;;
+
+.bg-dark-page {
+  background-color: $dark-page !important;
+}
+
+.bg-light {
+  background-color: #fafafa !important;
+}
 
 $positive  : #21BA45;
 $negative  : #C10015;
