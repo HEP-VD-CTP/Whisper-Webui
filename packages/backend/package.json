@@ -2,9 +2,12 @@
   "name": "backend",
   "type": "module",
   "scripts": {
-    "dev": "node index.js"
+    "dev": "tsx --watch ./src/index.js"
   },
   "dependencies": {
-    "fastify": "^5.2.1"
+    "drizzle-kit": "^0.30.4",
+    "drizzle-orm": "^0.39.2",
+    "fastify": "^5.2.1",
+    "mysql2": "^3.12.0"
   }
 }

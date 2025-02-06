@@ -59,5 +59,29 @@ services:
       - whisper_network
       - nginx_network
     command: npm run dev
+  
+  backend:
+    container_name: whisper-webui-backend
+    build:
+      context: .
+      dockerfile: ./packages/backend/Dockerfile
+      target: ${WHISPER_WEBUI_ENV}
+    environment:
+      - MYSQL_URL=${MYSQL_URL}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - NODE_ENV=${WHISPER_WEBUI_ENV}
+      - BACKEND_HTTP_PORT=${BACKEND_HTTP_PORT}
+    expose: 
+      - ${BACKEND_HTTP_PORT}
+    volumes:
+      - ${WHISPER_WEBUI_VOLUME_PATH}:/data
+      - ./packages/backend:/app_dev/packages/backend
+    networks:
+      - whisper_network
+      - nginx_network
+    command: npm run dev
 
 

@@ -1,20 +1,23 @@
-# Use a lightweight Node.js image
-FROM node:18-alpine
+FROM node:22.13.1-alpine AS base
 
-# Create and set the working directory
-WORKDIR /app
+RUN npm install -g tsx
 
-# Copy package.json and package-lock.json
-COPY ./packages/backend/package*.json ./
-
-# Install dependencies
+FROM base AS dev
+WORKDIR /app_dev
+COPY ./package*.json .
+RUN npm install
+WORKDIR /app_dev/packages/backend
+COPY ./packages/backend .
 RUN npm install
 
-# Copy the rest of the application files
+FROM base AS prod
+WORKDIR /app
+COPY ./package*.json .
+RUN npm install
+WORKDIR /app/packages/backend
 COPY ./packages/backend .
+RUN npm install
 
-# Expose port 3000 from inside the container
-EXPOSE 3000
+FROM dev AS development
 
-# Command to run the Fastify server
-CMD ["npm", "run", "dev"]
+FROM prod AS production
