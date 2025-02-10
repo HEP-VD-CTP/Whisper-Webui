@@ -74,8 +74,8 @@ services:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - NODE_ENV=${WHISPER_WEBUI_ENV}
       - BACKEND_HTTP_PORT=${BACKEND_HTTP_PORT}
-    expose: 
-      - ${BACKEND_HTTP_PORT}
+    ports: 
+      - ${BACKEND_HTTP_PORT}:${BACKEND_HTTP_PORT}
     volumes:
       - ${WHISPER_WEBUI_VOLUME_PATH}:/data
       - ./packages/backend:/app_dev/packages/backend

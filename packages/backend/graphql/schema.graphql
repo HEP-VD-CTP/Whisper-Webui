@@ -1,0 +1,26 @@
+# Built-in scalars
+scalar Date
+scalar DateTime
+scalar EmailAddress
+
+scalar UID
+
+type User {
+  id: UID,
+  firstname: String, 
+  lastname: String, 
+  email: EmailAddress, 
+  admin: Boolean,
+  created: DateTime,
+  archived: Boolean,
+  blocked: Boolean
+}
+
+type UserQuery {
+  findById(id: UID!): User!
+}
+
+type Query {
+  add(x: Int, y: Int): Int
+  Users: UserQuery
+}
