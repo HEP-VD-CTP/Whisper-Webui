@@ -16,7 +16,7 @@ export const db = drizzle({
 });
 
 // turn string uid to binary uid
-export function unhex<T>(dict: T): T {
+export function unhexDict<T>(dict: T): T {
   // Ensure dict is an object
   if (typeof dict !== "object" || dict === null || Array.isArray(dict))
     throw new Error("Expected an object");
@@ -43,6 +43,6 @@ export function hexIds(ids: Array<string>): any{
   return newIds;
 }
 
-export function hexId(id: string): any{
+export function unhexId(id: string): any{
   return sql`UNHEX(${id})`;
 }

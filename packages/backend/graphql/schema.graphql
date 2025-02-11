@@ -16,11 +16,32 @@ type User {
   blocked: Boolean
 }
 
-type UserQuery {
+input CreateUser {
+  firstname: String!,
+  lastname: String!, 
+  pwd: String!,
+  email: EmailAddress!,
+  admin: Boolean!
+}
+
+type UsersQuery {
   findById(id: UID!): User!
 }
 
 type Query {
   add(x: Int, y: Int): Int
-  Users: UserQuery
+  Users: UsersQuery
+}
+
+type UsersMutation {
+  insert(user: CreateUser!): Boolean!
+}
+
+type AuthMutation {
+  login(email: EmailAddress!, pwd: String!): String!
+}
+
+type Mutation {
+  Users: UsersMutation
+  Auth: AuthMutation
 }

@@ -1,6 +1,8 @@
 import uid from './uid.ts';
-
+import exceptions from './exceptions.ts';
 
 export default {
-  uid: uid
+  exceptions,
+  uid
+
 }

@@ -77,7 +77,7 @@ services:
     ports: 
       - ${BACKEND_HTTP_PORT}:${BACKEND_HTTP_PORT}
     volumes:
-      - ${WHISPER_WEBUI_VOLUME_PATH}:/data
+      - ${WHISPER_WEBUI_VOLUME_PATH}/backend:/data/backend
       - ./packages/backend:/app_dev/packages/backend
     networks:
       - whisper_network
