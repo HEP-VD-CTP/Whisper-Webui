@@ -1,6 +1,10 @@
 
 import rules from "./rules";
+import query from "./query";
+import window from "./window";
 
 export default {
-  rules
+  query,
+  rules,
+  window
 }

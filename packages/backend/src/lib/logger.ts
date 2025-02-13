@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 
-const PATH_INFO_LOG = '/data/backend/backend_info.log';
-const PATH_ERROR_LOG = '/data/backend/backend_error.log';
+const PATH_INFO_LOG = '/data/logs/backend.info.log';
+const PATH_ERROR_LOG = '/data/logs/backend.error.log';
 
 // Create write streams for the log files
 const infoStream = fs.createWriteStream(PATH_INFO_LOG, { flags: 'a' });

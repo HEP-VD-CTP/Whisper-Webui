@@ -8,9 +8,9 @@
         <q-separator size="2px" inset />
 
         <q-card-section class="q-pt-none q-mt-md">
-          <div class="row justify-center">
+          <div class="row justify-center ">
             <p class="text-weight-medium">{{ $t('login_page.connect_with_local_account') }}</p>
-          </div>
+          </div> 
         
           <q-form @submit="login">
             <q-input v-model="email" :label="t('user.email')" filled type="email" :rules="lib.rules.email(t('validation.email.mandatory'), t('validation.email.maxLength'), t('validation.email.valid'))" />
@@ -18,20 +18,20 @@
               <template v-slot:append>
                 <q-icon :name="isPwd ? 'visibility_off' : 'visibility'" class="cursor-pointer" @click="isPwd = !isPwd"/>
               </template>
-            </q-input>
+            </q-input> 
         
             <div class="q-mt-lg text-center">
               <q-btn color="primary" :label="t('login_page.login_button')" type="submit" icon-right="login" :loading="btnLoading"/>
-            </div>
+            </div>  
           </q-form>
         </q-card-section>
-    </q-card>
-  </q-page>
+    </q-card> 
+  </q-page> 
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-
+import { useQuasar, QVueGlobals } from 'quasar';
 import { whisperStore } from 'stores/WhisperStore';
 import { useI18n } from 'vue-i18n';
 
@@ -40,13 +40,41 @@ import lib  from 'src/lib/index';
 const { t } = useI18n();
 const store = whisperStore();
 
-const email      = ref(``);
-const password   = ref(``);
+const email      = ref(`john.doe@example.com`);
+const password   = ref(`123456`);
 const isPwd      = ref(true);
 const btnLoading = ref(false);
 
-async function login(): Promise<void> {
+const q: QVueGlobals = useQuasar(); 
 
+async function login(): Promise<void> {
+  btnLoading.value = true;
+
+  const user = await lib.query.gql(`
+  mutation AuthUser($email: EmailAddress!, $pwd: String!) {
+    Auth {
+      login(email: $email, pwd: $pwd) {
+        id
+        firstname
+        lastname
+      }
+    }
+  }`, {
+    email: email.value,
+    pwd: password.value
+  });
+
+  btnLoading.value = false;
+
+  if (user.status >= 400) {
+    q.dialog({
+      title: t('misc.error'),
+      message: t('login_page.invalid'),
+    });
+  } 
+  else {
+    console.log(`LOGIN SUCCESSs`);
+  }
 }
 
 onMounted(() => {

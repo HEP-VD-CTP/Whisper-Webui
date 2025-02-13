@@ -36,6 +36,8 @@ export function mapFields(fields: Array<string>, tableFields: any){
   return queryFields;
 }
 
+
+
 export function hexIds(ids: Array<string>): any{
   const newIds = [];
   for (const id of ids)

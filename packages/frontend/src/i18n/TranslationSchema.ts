@@ -3,9 +3,12 @@ export type TranslationSchema = {
     connect_with_local_account: string,
     login_button: string
     login_page_title: string,
+    invalid: string,
   },
   misc:{
     appearance: string,
+    close: string,
+    error: string,
     language: string,
     settings: string,
   },

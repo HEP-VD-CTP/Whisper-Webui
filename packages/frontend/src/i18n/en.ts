@@ -4,10 +4,13 @@ const en: TranslationSchema = {
   login_page: {
     connect_with_local_account: `Connect with local account`,
     login_button: `Login`,
-    login_page_title: `Login Page`
+    login_page_title: `Login Page`,
+    invalid: `Invalid credentials`
   },
   misc: {
     appearance: `Appearance`,
+    close: `Close`,
+    error: `Error`,
     language: `Language`,
     settings: `Settings`
   },
@@ -15,7 +18,7 @@ const en: TranslationSchema = {
     email: `Email address`,
     password: `Password`
   },
-  validation: {
+  validation: {  
     email: {
       mandatory: `Email address is mandatory`,
       maxLength: `Maximum length is 255 characters`,

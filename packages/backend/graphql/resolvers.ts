@@ -19,23 +19,29 @@ const resolvers = {
   },
   Mutation: {
     Auth: async (_, args, ctx, info) => {
-      console.log(`AUTH`);
+      console.log(`AUTH`); 
       return true;
     },
     Users: async (_, args, ctx, info) => {
       
-      return true;
+      return true; 
     }
   },
-  UsersQuery: {
+  UsersQuery: { 
     async findById(parent, args, ctx, info) {
       return await service.users.findById(args.id, getFields(info));
     }
   },
   AuthMutation: {
     async login(parent, args, ctx, info) {
-       
-      return true;
+      const user = await service.users.auth(args.email, args.pwd);
+      
+      ctx.reply.setCookie('mah_INVISIBLE_cookie', `mah_INVISIBLE_cookie`, {
+        httpOnly: true,
+        path: '/'
+      });
+
+      return user;
     } 
   },
   UsersMutation: {
@@ -53,8 +59,10 @@ const resolvers = {
         blocked: false,
         created_at: new Date()
       });
+
+      // set the cookies as the user is now authenticated
       
-      return await service.users.findById(newUserId, getFields(info)); 
+      return true;
     }
   }
 }

@@ -17,7 +17,7 @@ services:
       - ${NGINX_HTTPS_PORT}:443
       - 24678:24678 
     volumes:
-      - ${WHISPER_WEBUI_VOLUME_PATH}/nginx:/data/nginx
+      - ${WHISPER_WEBUI_VOLUME_PATH}/logs:/data/logs
     networks:
       - nginx_network
     command: ["nginx", "-g", "daemon off;"]
@@ -40,6 +40,19 @@ services:
       - ${WHISPER_WEBUI_VOLUME_PATH}/mysql:/var/lib/mysql
     command: mysqld
 
+  redis:
+    build:
+      context: .
+      dockerfile: ./packages/redis/Dockerfile
+    container_name: whisper-webui-redis
+    ports:
+      - ${REDIS_EXTERNAL_PORT}:6379
+    networks:
+      - whisper_network
+    volumes:
+      - ${WHISPER_WEBUI_VOLUME_PATH}/redis:/data/redis
+    command: ["redis-server", "--appendonly", "yes", "--dir", "/data/redis"]
+
   frontend:
     container_name: whisper-webui-frontend
     build:
@@ -48,12 +61,12 @@ services:
       target: ${WHISPER_WEBUI_ENV}
     environment:
       - NODE_ENV=${WHISPER_WEBUI_ENV}
+      - DOMAIN=${DOMAIN}:${NGINX_HTTPS_PORT}
       - TITLE=${FRONTEND_TITLE}
     expose:
       - "8000"  # http
       - "24678" # quasar ws dev port
     volumes:
-      - ${WHISPER_WEBUI_VOLUME_PATH}:/data
       - ./packages/frontend:/app_dev/packages/frontend
     networks:
       - whisper_network
@@ -67,17 +80,16 @@ services:
       dockerfile: ./packages/backend/Dockerfile
       target: ${WHISPER_WEBUI_ENV}
     environment:
+      - NODE_ENV=${WHISPER_WEBUI_ENV}
       - MYSQL_URL=${MYSQL_URL}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - NODE_ENV=${WHISPER_WEBUI_ENV}
-      - BACKEND_HTTP_PORT=${BACKEND_HTTP_PORT}
-    ports: 
-      - ${BACKEND_HTTP_PORT}:${BACKEND_HTTP_PORT}
+    expose: 
+      - 9000
     volumes:
-      - ${WHISPER_WEBUI_VOLUME_PATH}/backend:/data/backend
+      - ${WHISPER_WEBUI_VOLUME_PATH}/logs:/data/logs
       - ./packages/backend:/app_dev/packages/backend
     networks:
       - whisper_network

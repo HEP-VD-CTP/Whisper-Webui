@@ -88,6 +88,7 @@ const settingsSelector: Ref<boolean> = ref(false);
 onServerPrefetch(() => {
   // set the title of the page from the environment variable
   store.setTitle(process.env.TITLE);
+  store.setDomain(process.env.DOMAIN);
 });
 
 function setDarkMode(mode: boolean): void{
@@ -124,7 +125,7 @@ onBeforeMount(() => {
 onMounted(() => {
   q.dark.set(store.getDarkMode());
 });
-
+ 
 
 
 

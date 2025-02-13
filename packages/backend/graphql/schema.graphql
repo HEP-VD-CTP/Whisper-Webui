@@ -38,7 +38,7 @@ type UsersMutation {
 }
 
 type AuthMutation {
-  login(email: EmailAddress!, pwd: String!): String!
+  login(email: EmailAddress!, pwd: String!): User!
 }
 
 type Mutation {

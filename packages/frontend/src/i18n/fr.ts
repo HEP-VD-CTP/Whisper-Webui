@@ -5,9 +5,12 @@ const fr: TranslationSchema = {
     connect_with_local_account: `Se connecter avec un compte local`,
     login_button: `Connexion`,
     login_page_title: `Page de connexion`,
+    invalid: `Identifiants invalides`,
   },
   misc: {
     appearance: `Apparence`,
+    close: `Fermer`,
+    error: `Erreur`,
     language: `Langue`,
     settings: `Paramètres`
   },

@@ -1,27 +1,32 @@
 import Fastify  from 'fastify';
 
 import mercurius from 'mercurius';
-
-const app = Fastify({ logger: false });
-
 import service from 'src/db/service.ts';
 import lib from 'src/lib/index.ts';
 import resolvers from 'graphql/resolvers.ts';
 import { User, insertUser } from "src/db/types.ts";
 import depthLimit from 'graphql-depth-limit';
+import fastifyCookie from '@fastify/cookie';
+
+import store from 'src/db/store.ts';
 
 import { schema } from "graphql/graphql.ts";
 
 import logger from 'src/lib/logger.ts';
 
-const loaders = {
+const PORT: number = 9000;
 
-}
+const app = Fastify({ logger: false });
+
+app.register(fastifyCookie, {
+  secret: "my-secret", // for cookies signature
+  parseOptions: {}     // options for parsing cookies
+})
 
 app.register(mercurius, {
   schema,
   resolvers,
-  loaders,
+  loaders: {},
   graphiql: process.env.NODE_ENV == 'development', // enable graphiql in development
   cache: true,
   validationRules: [depthLimit(5)], 
@@ -76,8 +81,8 @@ app.addHook('preHandler', async (request, reply) => {});
 app.addHook('onResponse', async (request, reply) => {});
 
 try {
-  await app.listen({ host:`0.0.0.0`, port: parseInt(process.env.BACKEND_HTTP_PORT) });
-  logger.info(`startup`, `Backend is listening on port ${process.env.BACKEND_HTTP_PORT} in ${process.env.NODE_ENV} mode`);
+  await app.listen({ host:`0.0.0.0`, port: PORT });
+  logger.info(`startup`, `Backend is listening on port ${PORT} in ${process.env.NODE_ENV} mode`);
 } catch (err) {
   logger.error('startup', 'Backend failed to start', err);
   process.exit(1);

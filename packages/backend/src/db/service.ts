@@ -5,6 +5,26 @@ import { usersTable, usersFields } from './schema.ts';
 import { BadRequestException, ForbiddenException, NotFoundException, ConflictException } from '../lib/exceptions.ts';
 import crypto from 'node:crypto';
 
+export async function auth(email: string, password: string): Promise<User> {
+  const user = (await db.select()
+                        .from(usersTable)
+                        .where(and(eq(usersTable.email, email), eq(usersTable.archived, false))))[0];
+
+  // check if user is able to login
+  if (user == null)
+    throw new NotFoundException(`User not found`);
+  if (user.blocked)
+    throw new ForbiddenException(`User is blocked`);
+
+  // chek the user password
+  const sign = crypto.createHash(`sha512`).update(`${password}${user.salt}`).digest(`hex`);
+  if (sign !== user.pwd)
+    throw new ForbiddenException(`Invalid password`);
+
+  user.id = ((user.id as unknown) as Buffer).toString(`hex`).toUpperCase();
+  return user as User;
+}
+
 export async function findUserById(id: string, fields: Array<string>): Promise<User> {
   const user = (await db.select(mapFields(fields, usersFields))
                   .from(usersTable)
@@ -46,6 +66,7 @@ export async function insertNewUser(user: selectUser): Promise<void> {
 
 export default {
   users: {
+    auth: auth,
     findById: findUserById,
     insert: insertNewUser
   }
