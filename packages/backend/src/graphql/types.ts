@@ -6,6 +6,7 @@ export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: 
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: { input: string; output: string; }
@@ -19,21 +20,41 @@ export type Scalars = {
   UID: { input: any; output: any; }
 };
 
+export type AuthMutation = {
+  __typename?: 'AuthMutation';
+  login: User;
+};
+
+
+export type AuthMutationLoginArgs = {
+  email: Scalars['EmailAddress']['input'];
+  pwd: Scalars['String']['input'];
+};
+
+export type CreateUser = {
+  admin: Scalars['Boolean']['input'];
+  email: Scalars['EmailAddress']['input'];
+  firstname: Scalars['String']['input'];
+  lastname: Scalars['String']['input'];
+  pwd: Scalars['String']['input'];
+};
+
+export type Mutation = {
+  __typename?: 'Mutation';
+  Auth?: Maybe<AuthMutation>;
+  Users?: Maybe<UsersMutation>;
+};
+
 export type Query = {
   __typename?: 'Query';
+  Users?: Maybe<UsersQuery>;
   add?: Maybe<Scalars['Int']['output']>;
-  test?: Maybe<Scalars['UID']['output']>;
 };
 
 
 export type QueryAddArgs = {
   x?: InputMaybe<Scalars['Int']['input']>;
   y?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryTestArgs = {
-  x?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type User = {
@@ -43,9 +64,29 @@ export type User = {
   blocked?: Maybe<Scalars['Boolean']['output']>;
   created?: Maybe<Scalars['DateTime']['output']>;
   email?: Maybe<Scalars['EmailAddress']['output']>;
-  firstame?: Maybe<Scalars['String']['output']>;
+  firstname?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['UID']['output']>;
   lastname?: Maybe<Scalars['String']['output']>;
+};
+
+export type UsersMutation = {
+  __typename?: 'UsersMutation';
+  insert: Scalars['Boolean']['output'];
+};
+
+
+export type UsersMutationInsertArgs = {
+  user: CreateUser;
+};
+
+export type UsersQuery = {
+  __typename?: 'UsersQuery';
+  findById: User;
+};
+
+
+export type UsersQueryFindByIdArgs = {
+  id: Scalars['UID']['input'];
 };
 
 
@@ -119,28 +160,43 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
+  AuthMutation: ResolverTypeWrapper<AuthMutation>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
+  CreateUser: CreateUser;
   Date: ResolverTypeWrapper<Scalars['Date']['output']>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
   EmailAddress: ResolverTypeWrapper<Scalars['EmailAddress']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
+  Mutation: ResolverTypeWrapper<{}>;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   UID: ResolverTypeWrapper<Scalars['UID']['output']>;
   User: ResolverTypeWrapper<User>;
+  UsersMutation: ResolverTypeWrapper<UsersMutation>;
+  UsersQuery: ResolverTypeWrapper<UsersQuery>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
+  AuthMutation: AuthMutation;
   Boolean: Scalars['Boolean']['output'];
+  CreateUser: CreateUser;
   Date: Scalars['Date']['output'];
   DateTime: Scalars['DateTime']['output'];
   EmailAddress: Scalars['EmailAddress']['output'];
   Int: Scalars['Int']['output'];
+  Mutation: {};
   Query: {};
   String: Scalars['String']['output'];
   UID: Scalars['UID']['output'];
   User: User;
+  UsersMutation: UsersMutation;
+  UsersQuery: UsersQuery;
+};
+
+export type AuthMutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['AuthMutation'] = ResolversParentTypes['AuthMutation']> = {
+  login?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<AuthMutationLoginArgs, 'email' | 'pwd'>>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
@@ -155,9 +211,14 @@ export interface EmailAddressScalarConfig extends GraphQLScalarTypeConfig<Resolv
   name: 'EmailAddress';
 }
 
+export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  Auth?: Resolver<Maybe<ResolversTypes['AuthMutation']>, ParentType, ContextType>;
+  Users?: Resolver<Maybe<ResolversTypes['UsersMutation']>, ParentType, ContextType>;
+};
+
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  Users?: Resolver<Maybe<ResolversTypes['UsersQuery']>, ParentType, ContextType>;
   add?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType, Partial<QueryAddArgs>>;
-  test?: Resolver<Maybe<ResolversTypes['UID']>, ParentType, ContextType, Partial<QueryTestArgs>>;
 };
 
 export interface UidScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['UID'], any> {
@@ -170,18 +231,32 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   blocked?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   created?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   email?: Resolver<Maybe<ResolversTypes['EmailAddress']>, ParentType, ContextType>;
-  firstame?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  firstname?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<Maybe<ResolversTypes['UID']>, ParentType, ContextType>;
   lastname?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type UsersMutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['UsersMutation'] = ResolversParentTypes['UsersMutation']> = {
+  insert?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<UsersMutationInsertArgs, 'user'>>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UsersQueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['UsersQuery'] = ResolversParentTypes['UsersQuery']> = {
+  findById?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<UsersQueryFindByIdArgs, 'id'>>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type Resolvers<ContextType = any> = {
+  AuthMutation?: AuthMutationResolvers<ContextType>;
   Date?: GraphQLScalarType;
   DateTime?: GraphQLScalarType;
   EmailAddress?: GraphQLScalarType;
+  Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   UID?: GraphQLScalarType;
   User?: UserResolvers<ContextType>;
+  UsersMutation?: UsersMutationResolvers<ContextType>;
+  UsersQuery?: UsersQueryResolvers<ContextType>;
 };
 

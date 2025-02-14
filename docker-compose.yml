@@ -81,6 +81,7 @@ services:
       target: ${WHISPER_WEBUI_ENV}
     environment:
       - NODE_ENV=${WHISPER_WEBUI_ENV}
+      - USER_SESSION_EXP_TIME=${USER_SESSION_EXP_TIME}
       - MYSQL_URL=${MYSQL_URL}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}

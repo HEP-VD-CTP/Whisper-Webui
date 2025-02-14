@@ -78,6 +78,9 @@ import type { Ref} from 'vue';
 import { useQuasar, QVueGlobals } from 'quasar';
 import { whisperStore } from 'stores/WhisperStore';
 import { useI18n } from 'vue-i18n';
+import { User } from "@whisper-webui/backend/src/graphql/types.ts"
+import lib  from 'src/lib/index';
+import { useRouter, Router } from 'vue-router';
 
 const { locale } = useI18n();
 const store = whisperStore();
@@ -85,10 +88,54 @@ const q: QVueGlobals = useQuasar();
 const drawer = ref(false);
 const settingsSelector: Ref<boolean> = ref(false);
 
-onServerPrefetch(() => {
+const router: Router = useRouter(); 
+
+// this will be only executed on the server side
+onServerPrefetch(async () => {
   // set the title of the page from the environment variable
   store.setTitle(process.env.TITLE);
   store.setDomain(process.env.DOMAIN);
+
+  // check the user session
+  const sessionId = q.cookies.get('sessionId');
+  if (!sessionId)  // if there is no current session provided
+    return console.log(`NO SESSION`);
+
+  // get the user data
+  const query = `
+    mutation AuthMutation {
+      Auth {
+        renew {
+          id
+          firstname
+          lastname
+          email
+          admin
+          created
+          archived
+          blocked
+        }
+      }
+    }`.trim();
+    const response = await fetch(`http://whisper-webui-backend:9000/graphql`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'Cookie': `sessionId=${sessionId}` 
+    }, 
+    body: JSON.stringify({query: query})
+  });
+
+  // invalid session
+  if (response.status >= 400) 
+    return console.log(`INVALID SESSION`);
+    
+  // get the user
+  const user: User = (await response.json()).data.Auth.renew;
+  console.log(user);
+  
+  // store the user data
+  store.setUser(user);
 });
 
 function setDarkMode(mode: boolean): void{
@@ -101,7 +148,10 @@ function setLanguage(lang: string): void{
   store.setLanguage(lang);
 }
 
-onBeforeMount(() => { 
+onBeforeMount(async () => { 
+  if (store.user == null && router.currentRoute.value.path != '/expired')
+    router.push('/login');
+
   // if the language is null, we try to detect the user language
   if (!store.getLanguage()) {
     const languages = navigator.languages || [navigator.language];
@@ -124,6 +174,8 @@ onBeforeMount(() => {
 
 onMounted(() => {
   q.dark.set(store.getDarkMode());
+
+  console.log(store.user);
 });
  
 

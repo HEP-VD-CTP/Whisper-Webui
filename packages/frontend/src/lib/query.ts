@@ -9,7 +9,7 @@ export type GQLQueryResponse = {
   errors: any;
 }
 
-async function gql(query: string, body: Record<string, any>): Promise<GQLQueryResponse> {
+async function gql(query: string, body: Record<string, any> = {}, redirectOn401: boolean = true): Promise<GQLQueryResponse> {
   const response = await fetch(`https://${store.getDomain()}/api/graphql`, {
     method: 'POST',
     headers: {
@@ -21,6 +21,10 @@ async function gql(query: string, body: Record<string, any>): Promise<GQLQueryRe
     })
   });
    
+  // display the error page if the response status is 401
+  if (response.status === 401 && redirectOn401) 
+    window.location.href = '/expired';
+
   // get the headers
   const headers: Record<string, string> = {};
   response.headers.forEach((value, key) => headers[key] = value);

@@ -1,9 +1,22 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import type { Ref } from 'vue';
+import { User } from "@whisper-webui/backend/src/graphql/types.ts"
 
 export const whisperStore = defineStore('whisper', () => {
-  
+  // ########
+  // # user #
+  // ########
+  const user: Ref<User|null> = ref(null);
+
+  function getUser(): User|null {
+    return user.value;
+  }
+
+  function setUser(newUser: User|null): void {
+    user.value = newUser;
+  }
+
   // ##########
   // # domain #
   // ##########
@@ -20,7 +33,7 @@ export const whisperStore = defineStore('whisper', () => {
   // ##############
   // # page title #
   // ##############
-  const title: Ref<string> = ref('STORE TITLE');
+  const title: Ref<string> = ref('TITLE');
 
   function getTitle(): string {
     return title.value;
@@ -59,6 +72,10 @@ export const whisperStore = defineStore('whisper', () => {
   }
 
   return {
+    user,
+    getUser,
+    setUser,
+
     domain,
     getDomain,
     setDomain,

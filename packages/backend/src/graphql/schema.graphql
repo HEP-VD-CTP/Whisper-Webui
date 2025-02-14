@@ -25,6 +25,7 @@ input CreateUser {
 }
 
 type UsersQuery {
+  test: Boolean!
   findById(id: UID!): User!
 }
 
@@ -39,6 +40,7 @@ type UsersMutation {
 
 type AuthMutation {
   login(email: EmailAddress!, pwd: String!): User!
+  renew: User!
 }
 
 type Mutation {

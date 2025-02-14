@@ -22,6 +22,7 @@
         
             <div class="q-mt-lg text-center">
               <q-btn color="primary" :label="t('login_page.login_button')" type="submit" icon-right="login" :loading="btnLoading"/>
+              <q-btn color="primary" @click="test" label="test" icon-right="login"/>
             </div>  
           </q-form>
         </q-card-section>
@@ -34,8 +35,11 @@ import { ref, onMounted } from 'vue';
 import { useQuasar, QVueGlobals } from 'quasar';
 import { whisperStore } from 'stores/WhisperStore';
 import { useI18n } from 'vue-i18n';
-
+import { useRouter, Router, RouteLocationNormalized } from 'vue-router';
 import lib  from 'src/lib/index';
+
+const router: Router = useRouter(); 
+
 
 const { t } = useI18n();
 const store = whisperStore();
@@ -46,6 +50,17 @@ const isPwd      = ref(true);
 const btnLoading = ref(false);
 
 const q: QVueGlobals = useQuasar(); 
+
+async function test(){
+  const x = await lib.query.gql(`
+  query {
+    Users {
+      test
+    }
+  }
+  `);
+  console.log(x);
+}
 
 async function login(): Promise<void> {
   btnLoading.value = true;
@@ -74,6 +89,7 @@ async function login(): Promise<void> {
   } 
   else {
     console.log(`LOGIN SUCCESSs`);
+    router.push('/');
   }
 }
 

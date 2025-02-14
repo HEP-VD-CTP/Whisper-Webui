@@ -10,6 +10,17 @@ export class BadRequestException extends Error {
     }
   }
   
+  export class UnauthorizedException extends Error {
+    statusCode: number;
+    name: string; 
+    
+    constructor(message: any){
+        super(`UnauthorizedException: ${message}`);
+        this.name = `UnauthorizedException`;
+        this.statusCode = 401;
+    }
+  
+  }
   export class ForbiddenException extends Error {
     statusCode: number;
     name: string; 

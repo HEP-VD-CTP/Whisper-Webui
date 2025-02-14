@@ -6,13 +6,15 @@ const fr: TranslationSchema = {
     login_button: `Connexion`,
     login_page_title: `Page de connexion`,
     invalid: `Identifiants invalides`,
+    sessionExpired: `Votre session a expiré. Veuillez vous reconnecter.`
   },
   misc: {
+    alert: `Alerte`,
     appearance: `Apparence`,
     close: `Fermer`,
     error: `Erreur`,
     language: `Langue`,
-    settings: `Paramètres`
+    settings: `Paramètres`,
   },
   user: {
     email: `Adresse email`,

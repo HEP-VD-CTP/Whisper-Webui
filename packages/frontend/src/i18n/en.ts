@@ -5,14 +5,16 @@ const en: TranslationSchema = {
     connect_with_local_account: `Connect with local account`,
     login_button: `Login`,
     login_page_title: `Login Page`,
-    invalid: `Invalid credentials`
+    invalid: `Invalid credentials`,
+    sessionExpired: `Your session has expired. Please login.`
   },
   misc: {
+    alert: `Alert`,
     appearance: `Appearance`,
     close: `Close`,
     error: `Error`,
     language: `Language`,
-    settings: `Settings`
+    settings: `Settings`,
   },
   user: {
     email: `Email address`,

@@ -1,6 +1,7 @@
 {
-  "name": "backend",
+  "name": "@whisper-webui/backend",
   "type": "module",
+  "version": "1.0.0",
   "scripts": {
     "dev": "tsx --watch ./src/index.js"
   },

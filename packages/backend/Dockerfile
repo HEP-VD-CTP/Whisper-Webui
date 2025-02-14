@@ -9,7 +9,6 @@ RUN npm install
 WORKDIR /app_dev/packages/backend
 COPY ./packages/backend .
 RUN npm install
-RUN npx graphql-codegen
 
 FROM base AS prod
 WORKDIR /app
@@ -18,7 +17,6 @@ RUN npm install
 WORKDIR /app/packages/backend
 COPY ./packages/backend .
 RUN npm install
-RUN npx graphql-codegen
 
 FROM dev AS development
 

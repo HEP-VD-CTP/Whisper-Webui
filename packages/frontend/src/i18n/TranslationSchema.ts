@@ -4,13 +4,16 @@ export type TranslationSchema = {
     login_button: string
     login_page_title: string,
     invalid: string,
+    sessionExpired: string
   },
   misc:{
+    alert: string,
     appearance: string,
     close: string,
     error: string,
     language: string,
     settings: string,
+    
   },
   user: {
     email: string, 
