@@ -14,13 +14,37 @@ import { schema, errorFormatter } from "src/graphql/graphql.ts";
 
 import logger from 'src/lib/logger.ts';
 
+import {
+  fastifyTRPCPlugin,
+  FastifyTRPCPluginOptions,
+} from '@trpc/server/adapters/fastify';
+
+import { appRouter, type AppRouter } from '@whisper-webui/lib/src/trpc/router.ts';
+import { createContext } from '@whisper-webui/lib/src/trpc/context.ts';
+import { ForbiddenException } from './lib/exceptions.ts';
+
+
+import { TRPCError } from '@trpc/server';
+import { TRPCErrorResponse } from '@trpc/server/rpc';
+
+
 const PORT: number = 9000;
 
 const app = Fastify({ logger: false });
 
-store.set('test', 'test');
-
 app.register(fastifyCookie);
+
+// register trpc server
+app.register(fastifyTRPCPlugin, {
+  prefix: '/trpc',
+  trpcOptions: {
+    router: appRouter,
+    createContext,
+    onError({ path, error }) {
+      console.error(`Error in tRPC handler on path '${path}': ${error}`);
+    },
+  } satisfies FastifyTRPCPluginOptions<AppRouter>['trpcOptions'],
+});
 
 app.register(mercurius, {
   schema,

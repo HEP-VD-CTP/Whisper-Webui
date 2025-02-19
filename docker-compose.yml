@@ -68,6 +68,7 @@ services:
       - "24678" # quasar ws dev port
     volumes:
       - ./packages/frontend:/app_dev/packages/frontend
+      - ./packages/lib:/app_dev/packages/lib
     networks:
       - whisper_network
       - nginx_network
@@ -92,6 +93,7 @@ services:
     volumes:
       - ${WHISPER_WEBUI_VOLUME_PATH}/logs:/data/logs
       - ./packages/backend:/app_dev/packages/backend
+      - ./packages/lib:/app_dev/packages/lib
     networks:
       - whisper_network
       - nginx_network

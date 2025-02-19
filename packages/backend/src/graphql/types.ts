@@ -17,12 +17,15 @@ export type Scalars = {
   Date: { input: any; output: any; }
   DateTime: { input: any; output: any; }
   EmailAddress: { input: any; output: any; }
+  NonEmptyString: { input: any; output: any; }
   UID: { input: any; output: any; }
 };
 
 export type AuthMutation = {
   __typename?: 'AuthMutation';
   login: User;
+  logout: Scalars['Boolean']['output'];
+  renew: User;
 };
 
 
@@ -34,9 +37,9 @@ export type AuthMutationLoginArgs = {
 export type CreateUser = {
   admin: Scalars['Boolean']['input'];
   email: Scalars['EmailAddress']['input'];
-  firstname: Scalars['String']['input'];
-  lastname: Scalars['String']['input'];
-  pwd: Scalars['String']['input'];
+  firstname: Scalars['NonEmptyString']['input'];
+  lastname: Scalars['NonEmptyString']['input'];
+  pwd: Scalars['NonEmptyString']['input'];
 };
 
 export type Mutation = {
@@ -62,7 +65,7 @@ export type User = {
   admin?: Maybe<Scalars['Boolean']['output']>;
   archived?: Maybe<Scalars['Boolean']['output']>;
   blocked?: Maybe<Scalars['Boolean']['output']>;
-  created?: Maybe<Scalars['DateTime']['output']>;
+  created_at?: Maybe<Scalars['DateTime']['output']>;
   email?: Maybe<Scalars['EmailAddress']['output']>;
   firstname?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['UID']['output']>;
@@ -72,6 +75,7 @@ export type User = {
 export type UsersMutation = {
   __typename?: 'UsersMutation';
   insert: Scalars['Boolean']['output'];
+  updatePassword: Scalars['Boolean']['output'];
 };
 
 
@@ -79,9 +83,16 @@ export type UsersMutationInsertArgs = {
   user: CreateUser;
 };
 
+
+export type UsersMutationUpdatePasswordArgs = {
+  id: Scalars['UID']['input'];
+  pwd: Scalars['NonEmptyString']['input'];
+};
+
 export type UsersQuery = {
   __typename?: 'UsersQuery';
   findById: User;
+  test: Scalars['Boolean']['output'];
 };
 
 
@@ -168,6 +179,7 @@ export type ResolversTypes = {
   EmailAddress: ResolverTypeWrapper<Scalars['EmailAddress']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   Mutation: ResolverTypeWrapper<{}>;
+  NonEmptyString: ResolverTypeWrapper<Scalars['NonEmptyString']['output']>;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   UID: ResolverTypeWrapper<Scalars['UID']['output']>;
@@ -186,6 +198,7 @@ export type ResolversParentTypes = {
   EmailAddress: Scalars['EmailAddress']['output'];
   Int: Scalars['Int']['output'];
   Mutation: {};
+  NonEmptyString: Scalars['NonEmptyString']['output'];
   Query: {};
   String: Scalars['String']['output'];
   UID: Scalars['UID']['output'];
@@ -196,6 +209,8 @@ export type ResolversParentTypes = {
 
 export type AuthMutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['AuthMutation'] = ResolversParentTypes['AuthMutation']> = {
   login?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<AuthMutationLoginArgs, 'email' | 'pwd'>>;
+  logout?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  renew?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -216,6 +231,10 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   Users?: Resolver<Maybe<ResolversTypes['UsersMutation']>, ParentType, ContextType>;
 };
 
+export interface NonEmptyStringScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['NonEmptyString'], any> {
+  name: 'NonEmptyString';
+}
+
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   Users?: Resolver<Maybe<ResolversTypes['UsersQuery']>, ParentType, ContextType>;
   add?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType, Partial<QueryAddArgs>>;
@@ -229,7 +248,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   admin?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   archived?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   blocked?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  created?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  created_at?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   email?: Resolver<Maybe<ResolversTypes['EmailAddress']>, ParentType, ContextType>;
   firstname?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<Maybe<ResolversTypes['UID']>, ParentType, ContextType>;
@@ -239,11 +258,13 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 
 export type UsersMutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['UsersMutation'] = ResolversParentTypes['UsersMutation']> = {
   insert?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<UsersMutationInsertArgs, 'user'>>;
+  updatePassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<UsersMutationUpdatePasswordArgs, 'id' | 'pwd'>>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type UsersQueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['UsersQuery'] = ResolversParentTypes['UsersQuery']> = {
   findById?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<UsersQueryFindByIdArgs, 'id'>>;
+  test?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -253,6 +274,7 @@ export type Resolvers<ContextType = any> = {
   DateTime?: GraphQLScalarType;
   EmailAddress?: GraphQLScalarType;
   Mutation?: MutationResolvers<ContextType>;
+  NonEmptyString?: GraphQLScalarType;
   Query?: QueryResolvers<ContextType>;
   UID?: GraphQLScalarType;
   User?: UserResolvers<ContextType>;

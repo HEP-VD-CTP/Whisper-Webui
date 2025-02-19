@@ -11,12 +11,18 @@
 <script setup lang="ts">
 import { whisperStore } from 'stores/WhisperStore';
 import { useRouter, Router } from 'vue-router';
+import lib  from 'src/lib/index';
+import trpc from 'src/lib/trpc';
 
 const router: Router = useRouter(); 
 
 const store = whisperStore();
 
 store.setUser(null);
+
+// terminate session on the server
+trpc.auth.logout.query();
+
 
 router.push('/login');
 

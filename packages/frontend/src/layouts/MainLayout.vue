@@ -14,9 +14,43 @@
 
           <q-toolbar-title>
             {{ store.getTitle() }}
+            <q-badge v-if="store.env == 'development'" color="red" align="top">
+                DEV <q-icon name="warning" color="white" class="q-ml-xs" />
+            </q-badge>
           </q-toolbar-title>
 
-          <q-btn @click="settingsSelector=true" round dense flat icon="settings" />
+          <template v-if="store.user == null">
+            <q-btn @click="settingsSelector=true" round dense flat icon="settings" />
+          </template>
+          <template v-else>
+            <q-btn-dropdown flat no-caps :label="store.user.email">
+              <q-item clickable v-close-popup @click="router.push(`/users`)">
+                <q-item-section>
+                  <q-item-label>{{ $t('users.users') }}</q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-icon name="groups" />
+                </q-item-section>
+              </q-item>
+              <q-item clickable v-close-popup @click="settingsSelector=true">
+                <q-item-section>
+                  <q-item-label>{{ $t('misc.settings') }}</q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-icon name="settings" />
+                </q-item-section>
+              </q-item>
+              <q-item clickable v-close-popup @click="router.push(`/logout`)">
+                <q-item-section>
+                  <q-item-label>{{ $t('login_page.logout_button') }}</q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-icon name="logout" />
+                </q-item-section>
+              </q-item>
+            </q-btn-dropdown>
+          </template>
+          
 
         </q-toolbar>
       
@@ -43,7 +77,6 @@
           <q-separator size="2px" inset />
 
           <q-card-section class="q-pt-none q-mt-sm">
-
             <div class="row justify-center">
               <p class="text-weight-medium">{{ $t('misc.language') }}</p>
             </div>
@@ -61,6 +94,25 @@
               <q-btn color="primary" :outline="store.darkMode" @click="setDarkMode(false)" class="q-mr-sm">Light Mode</q-btn>
               <q-btn color="primary" :outline="!store.darkMode" @click="setDarkMode(true)">Dark Mode</q-btn>
             </div>
+
+            <template v-if="store.user != null">
+              <div class="row justify-center q-mt-md">
+                <p class="text-weight-medium">{{ $t('user.user_account') }}</p>
+              </div>
+
+              <q-list>
+                <q-item clickable v-ripple>
+                  <q-item-section>
+                    <q-item-label>{{ store.user.email }}</q-item-label>
+                    <q-item-label caption>{{ store.user.firstname }} {{ store.user.lastname }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+
+              <div class="row justify-center q-mt-md">
+                <q-btn color="negative" @click="changePwd" class="q-mr-sm">{{ $t('user.change_password') }}</q-btn>                
+              </div>
+            </template>
           </q-card-section>
 
           <q-card-actions align="right">
@@ -81,8 +133,9 @@ import { useI18n } from 'vue-i18n';
 import { User } from "@whisper-webui/backend/src/graphql/types.ts"
 import lib  from 'src/lib/index';
 import { useRouter, Router } from 'vue-router';
+import { userInfo } from 'os';
 
-const { locale } = useI18n();
+const { t, locale } = useI18n();
 const store = whisperStore();
 const q: QVueGlobals = useQuasar(); 
 const drawer = ref(false);
@@ -93,6 +146,7 @@ const router: Router = useRouter();
 // this will be only executed on the server side
 onServerPrefetch(async () => {
   // set the title of the page from the environment variable
+  store.setEnv(process.env.NODE_ENV);
   store.setTitle(process.env.TITLE);
   store.setDomain(process.env.DOMAIN);
 
@@ -102,41 +156,74 @@ onServerPrefetch(async () => {
     return console.log(`NO SESSION`);
 
   // get the user data
-  const query = `
-    mutation AuthMutation {
-      Auth {
-        renew {
-          id
-          firstname
-          lastname
-          email
-          admin
-          created
-          archived
-          blocked
-        }
-      }
-    }`.trim();
-    const response = await fetch(`http://whisper-webui-backend:9000/graphql`, {
-    method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
-      'Cookie': `sessionId=${sessionId}` 
-    }, 
-    body: JSON.stringify({query: query})
-  });
 
-  // invalid session
-  if (response.status >= 400) 
-    return console.log(`INVALID SESSION`);
-    
-  // get the user
-  const user: User = (await response.json()).data.Auth.renew;
-  console.log(user);
+  const query = `
+  mutation AuthMutation {
+    Auth {
+      renew {
+        id
+        firstname
+        lastname
+        email
+        admin
+        created_at
+        archived
+        blocked
+      }
+    }
+  }`.trim();
   
-  // store the user data
-  store.setUser(user);
+  try {
+    const response = await fetch(`http://whisper-webui-backend:9000/graphql`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Cookie': `sessionId=${sessionId}` 
+      }, 
+      body: JSON.stringify({query: query})
+    });
+
+    // invalid session
+    if (response.status >= 400) 
+      return console.log(`INVALID SESSION`);
+      
+    // get the user
+    const user: User = (await response.json()).data.Auth.renew;
+    
+    // store the user data
+    store.setUser(user);
+  }
+  catch(err){
+    console.error(err);
+  }
 });
+
+async function changePwd(): Promise<void> {
+  q.dialog({
+          title: t('user.change_password'),
+          prompt: {
+            model: '',
+            isValid: val => val.length >= 6 && val.length <= 255, 
+            type: 'password'
+          },
+          cancel: {
+            label: t('misc.cancel'),
+            flat: true
+          },
+          persistent: true
+        }).onOk(async data => {
+          console.log(data);
+          await lib.query.gql(`
+          mutation UpdateUserPassword($id: UID!, $pwd: NonEmptyString!) {
+            Users {
+              updatePassword(id: $id, pwd: $pwd)
+            }
+          }`, {
+            id: store.user.id,
+            pwd: data
+          });
+        })
+}
 
 function setDarkMode(mode: boolean): void{
   store.setDarkMode(mode);

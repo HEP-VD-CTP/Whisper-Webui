@@ -32,4 +32,3 @@ const store = whisperStore();
 store.setUser(null);
 
 </script>
-  

@@ -5,15 +5,21 @@ import { type User } from 'src/db/types.ts';
 import { db, mapFields, hexIds } from 'src/db/db.ts';
 import { usersTable, usersFields } from 'src/db/schema.ts';
 import { sql, eq, lt, gte, ne, and, inArray} from 'drizzle-orm';
-import { getFields, checkSession, setSessionCookie } from "src/graphql/graphql.ts";
+import { getFields, checkSession, setSessionCookie, removeSessionCookie } from "src/graphql/graphql.ts";
 import { BadRequestException, ForbiddenException, NotFoundException, ConflictException, UnauthorizedException } from "src/lib/exceptions.ts";
 import { selectUser } from "src/db/types.ts";
+
+import db2 from 'src/db/db2.ts';
 
 import store from 'src/db/store.ts';
 
 // user session expiration time
 const exp: number = parseInt(process.env.USER_SESSION_EXP_TIME);
 
+function adminOnly(user: User){
+  if (!user.admin)
+    throw new UnauthorizedException(`You must be an admin to perform this action`);
+}
 
 const resolvers = {
   UID,
@@ -27,8 +33,7 @@ const resolvers = {
       return true;
     },
     Users: async (_, args, ctx, info) => {
-      
-      return true;  
+      return await checkSession(ctx, exp);
     }
   }, 
   UsersQuery: { 
@@ -36,15 +41,23 @@ const resolvers = {
       console.log(`TEST`);
       return true;
     },
-    async findById(parent, args, ctx, info) {
+    /*async findById(parent, args, ctx, info) {
+      if (args.id != ctx.user.id && !ctx.user.admin)
+        throw new ForbiddenException(`You can't get others users informations`);
       return await service.users.findById(args.id, getFields(info));
+    },*/
+    async search(parent, args, ctx, info){
+      adminOnly(ctx.user);
+      const users =  await service.users.search(db2.pool(),args.term, getFields(info));
+
+      //console.log(users);
+      return users;
     }
   },
   AuthMutation: {
     async login(parent, args, ctx, info) {
-      console.log(`login`);
       // try authenticate the user
-      const user = await service.users.auth(args.email, args.pwd);
+      const user = await service.users.auth(db2.pool(), args.email, args.pwd);
       
       // store the session in redis
       const sessionId = lib.uid.genUID();
@@ -58,10 +71,15 @@ const resolvers = {
     async renew(parent, args, ctx, info) {
       await checkSession(ctx, exp);
       return ctx.user;
+    },
+    async logout(parent, args, ctx, info) {
+      await store.deleteSession(ctx.reply.request.cookies.sessionId);
+      return true;
     }
   },
   UsersMutation: {
-    async insert(parent, args, ctx, info) {
+    /*async insert(parent, args, ctx, info) {
+      adminOnly(ctx.user);
       const newUserId = lib.uid.genUID();
       await service.users.insert({
         id: newUserId,
@@ -76,6 +94,22 @@ const resolvers = {
         created_at: new Date()
       });
       
+      return true;
+    },*/
+    async updatePassword(parent, args, ctx, info) {
+      const userIdToModify = args.id;
+      const userId = ctx.user.id;
+      const newPassword = args.pwd;
+
+      // only admin can modify other users password
+      if (userIdToModify != userId && !ctx.user.admin)
+        throw new ForbiddenException(`You can't modify other users password`);
+
+      if (newPassword.length < 6 || newPassword.length > 255)
+        throw new BadRequestException(`Password length must be between 6 and 255 characters`);
+
+      await service.users.updatePassword(db2.pool(), userIdToModify, newPassword);
+
       return true;
     }
   }

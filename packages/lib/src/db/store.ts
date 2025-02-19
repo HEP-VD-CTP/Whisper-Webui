@@ -1,6 +1,6 @@
 import IORedis from 'ioredis';
 
-import { User } from 'src/db/types.ts';
+import { User } from '@whisper-webui/lib/src/types/types.ts';
 
 // @ts-ignore 
 const redis = new IORedis({

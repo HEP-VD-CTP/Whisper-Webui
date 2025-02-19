@@ -3,18 +3,32 @@ import { ref } from 'vue';
 import type { Ref } from 'vue';
 import { User } from "@whisper-webui/backend/src/graphql/types.ts"
 
+
 export const whisperStore = defineStore('whisper', () => {
   // ########
   // # user #
   // ########
-  const user: Ref<User|null> = ref(null);
+  const user: Ref<User> = ref(null);
 
-  function getUser(): User|null {
+  function getUser(): User {
     return user.value;
   }
 
-  function setUser(newUser: User|null): void {
+  function setUser(newUser: User): void {
     user.value = newUser;
+  }
+
+  // #######
+  // # env #
+  // #######
+  const env: Ref<string> = ref('development');
+
+  function getEnv(): string {
+    return env.value;
+  }
+
+  function setEnv(newEnv: string): void {
+    env.value = newEnv;
   }
 
   // ##########
@@ -75,6 +89,10 @@ export const whisperStore = defineStore('whisper', () => {
     user,
     getUser,
     setUser,
+
+    env,
+    getEnv,
+    setEnv,
 
     domain,
     getDomain,

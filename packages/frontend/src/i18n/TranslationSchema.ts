@@ -2,13 +2,15 @@ export type TranslationSchema = {
   login_page: {
     connect_with_local_account: string,
     login_button: string
+    logout_button: string,
     login_page_title: string,
     invalid: string,
     sessionExpired: string
   },
-  misc:{
+  misc: {
     alert: string,
     appearance: string,
+    cancel: string, 
     close: string,
     error: string,
     language: string,
@@ -17,7 +19,14 @@ export type TranslationSchema = {
   },
   user: {
     email: string, 
-    password: string
+    password: string,
+    user_account: string,
+    change_password: string,
+  },
+  users: {
+    add_user: string, 
+    search_user: string,
+    users: string,
   },
   validation: {
     email: {

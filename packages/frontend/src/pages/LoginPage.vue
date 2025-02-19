@@ -37,6 +37,7 @@ import { whisperStore } from 'stores/WhisperStore';
 import { useI18n } from 'vue-i18n';
 import { useRouter, Router, RouteLocationNormalized } from 'vue-router';
 import lib  from 'src/lib/index';
+import trpc from 'src/lib/trpc';
 
 const router: Router = useRouter(); 
 
@@ -65,35 +66,23 @@ async function test(){
 async function login(): Promise<void> {
   btnLoading.value = true;
 
-  const user = await lib.query.gql(`
-  mutation AuthUser($email: EmailAddress!, $pwd: String!) {
-    Auth {
-      login(email: $email, pwd: $pwd) {
-        id
-        firstname
-        lastname
-      }
-    }
-  }`, {
-    email: email.value,
-    pwd: password.value
-  });
-
-  btnLoading.value = false;
-
-  if (user.status >= 400) {
+  try {
+    const user = await trpc.auth.login.query({email: email.value, pwd: password.value});
+    store.setUser(user);
+    router.push('/');
+  }
+  catch(err){
+    console.error(`${err.shape.data.httpStatus} ${err.shape.data.code}`);
     q.dialog({
       title: t('misc.error'),
       message: t('login_page.invalid'),
     });
-  } 
-  else {
-    console.log(`LOGIN SUCCESSs`);
-    router.push('/');
   }
+
+  btnLoading.value = false;
 }
 
-onMounted(() => {
+onMounted(async () => {
   document.title = `${t('login_page.login_page_title')} - ${store.getTitle()}`;
 });
 

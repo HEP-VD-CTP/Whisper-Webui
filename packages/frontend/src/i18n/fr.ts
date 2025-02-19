@@ -4,6 +4,7 @@ const fr: TranslationSchema = {
   login_page: {
     connect_with_local_account: `Se connecter avec un compte local`,
     login_button: `Connexion`,
+    logout_button: `Déconnexion`,
     login_page_title: `Page de connexion`,
     invalid: `Identifiants invalides`,
     sessionExpired: `Votre session a expiré. Veuillez vous reconnecter.`
@@ -11,6 +12,7 @@ const fr: TranslationSchema = {
   misc: {
     alert: `Alerte`,
     appearance: `Apparence`,
+    cancel: `Annuler`,
     close: `Fermer`,
     error: `Erreur`,
     language: `Langue`,
@@ -18,7 +20,14 @@ const fr: TranslationSchema = {
   },
   user: {
     email: `Adresse email`,
-    password: `Mot de passe`
+    password: `Mot de passe`,
+    user_account: `Compte utilisateur`,
+    change_password: `Changer le mot de passe`
+  },
+  users: {
+    add_user: `Ajouter un utilisateur`,
+    search_user: `Rechercher un utilisateur`,
+    users: `Utilisateurs`
   },
   validation: {
     email: {

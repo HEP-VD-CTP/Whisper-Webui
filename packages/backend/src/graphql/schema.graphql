@@ -2,6 +2,7 @@
 scalar Date
 scalar DateTime
 scalar EmailAddress
+scalar NonEmptyString
 
 scalar UID
 
@@ -11,15 +12,15 @@ type User {
   lastname: String, 
   email: EmailAddress, 
   admin: Boolean,
-  created: DateTime,
+  created_at: DateTime,
   archived: Boolean,
   blocked: Boolean
 }
 
 input CreateUser {
-  firstname: String!,
-  lastname: String!, 
-  pwd: String!,
+  firstname: NonEmptyString!,
+  lastname: NonEmptyString!, 
+  pwd: NonEmptyString!,
   email: EmailAddress!,
   admin: Boolean!
 }
@@ -27,6 +28,7 @@ input CreateUser {
 type UsersQuery {
   test: Boolean!
   findById(id: UID!): User!
+  search(term: NonEmptyString!): [User]!
 }
 
 type Query {
@@ -36,11 +38,13 @@ type Query {
 
 type UsersMutation {
   insert(user: CreateUser!): Boolean!
+  updatePassword(id: UID!, pwd: NonEmptyString!): Boolean!
 }
 
 type AuthMutation {
   login(email: EmailAddress!, pwd: String!): User!
   renew: User!
+  logout: Boolean!
 }
 
 type Mutation {

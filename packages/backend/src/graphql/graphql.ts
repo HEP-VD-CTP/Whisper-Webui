@@ -90,3 +90,11 @@ export function setSessionCookie(ctx: any, sessionId: string, exp: number){
     maxAge: exp
   });
 }
+
+export function removeSessionCookie(ctx: any){
+  ctx.reply.setCookie('sessionId', '', {
+    httpOnly: true,
+    path: '/',
+    maxAge: 0
+  });
+}
