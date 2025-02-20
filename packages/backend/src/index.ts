@@ -11,8 +11,8 @@ import {
   FastifyTRPCPluginOptions,
 } from '@trpc/server/adapters/fastify';
 
-import { appRouter, type AppRouter } from '@whisper-webui/lib/src/trpc/router.ts';
-import { createContext } from '@whisper-webui/lib/src/trpc/context.ts';
+import { appRouter, type AppRouter } from 'src/trpc/router.ts';
+import { createContext } from 'src/trpc/context.ts';
 
 
 const PORT: number = 9000;

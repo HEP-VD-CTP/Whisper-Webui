@@ -8,7 +8,7 @@ import store from '@whisper-webui/lib/src/db/store.ts';
 import lib from '@whisper-webui/lib/src/lib/index.ts';
 import { ForbiddenException, UnauthorizedException } from '@whisper-webui/lib/src/db/exceptions.ts';
 
-import { Context } from '@whisper-webui/lib/src/trpc/context.ts';
+import { Context } from 'src/trpc/context.ts';
 
 const idZodValidation = z.string().refine((val) => {
   // id must be 24 length string
@@ -140,7 +140,8 @@ const authRouter = t.router({
 // 
 
 const usersRouter = t.router({
-  test: adminProcedure.query(opts => {
+  test: adminProcedure
+  .query(opts => {
     console.log(`TEST from server`);
     console.log(opts.ctx.user);
     return true;

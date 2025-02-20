@@ -54,7 +54,8 @@ const q: QVueGlobals = useQuasar();
 
 async function test(){
   try{
-    const x = await trpc.auth.renew.query();
+    //const x = await trpc.auth.renew.query();
+    const x = await trpc.users.test.query();
   }
   catch(err){
     

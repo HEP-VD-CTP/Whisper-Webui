@@ -1,5 +1,5 @@
 import { createTRPCProxyClient, TRPCClientError, httpBatchLink, loggerLink } from '@trpc/client';
-import type { AppRouter } from '@whisper-webui/lib/src/trpc/router';
+import type { AppRouter } from '@whisper-webui/backend/src/trpc/router';
 import { whisperStore } from 'src/stores/WhisperStore.ts';
 import superjson from 'superjson';
 

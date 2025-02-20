@@ -6,10 +6,6 @@ WORKDIR /app_dev
 COPY ./package*.json .
 RUN npm install
 
-WORKDIR /app_dev/packages/lib
-COPY ./packages/lib .
-RUN npm install
-
 WORKDIR /app_dev/packages/frontend
 COPY ./packages/frontend .
 RUN npm install
@@ -17,10 +13,6 @@ RUN npm install
 FROM base AS prod
 WORKDIR /app
 COPY ./package*.json .
-RUN npm install
-
-WORKDIR /app/packages/lib
-COPY ./packages/lib .
 RUN npm install
 
 WORKDIR /app/packages/frontend
