@@ -130,7 +130,7 @@ import type { Ref} from 'vue';
 import { useQuasar, QVueGlobals } from 'quasar';
 import { whisperStore } from 'stores/WhisperStore';
 import { useI18n } from 'vue-i18n';
-import { User } from "@whisper-webui/backend/src/graphql/types.ts"
+import { User } from "@whisper-webui/lib/src/types/types.ts"
 import lib  from 'src/lib/index';
 import { useRouter, Router } from 'vue-router';
 import { userInfo } from 'os';

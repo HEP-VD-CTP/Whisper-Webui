@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import type { Ref } from 'vue';
-import { User } from "@whisper-webui/backend/src/graphql/types.ts"
+import { User } from "@whisper-webui/lib/src/types/types.ts"
 
 
 export const whisperStore = defineStore('whisper', () => {

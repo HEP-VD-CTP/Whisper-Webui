@@ -162,17 +162,7 @@ const usersRouter = t.router({
       throw new ForbiddenException(`You can't change other users password`);
     
     await DAO.service.users.updatePassword(opts.input.id, opts.input.pwd);
-    //await DAO.service.users.updatePassword(opts.ctx.user.id, opts.input.oldPwd, opts.input.newPwd);
   }),
-
-  /*getUserById: adminProcedure
-    .input(z.number())
-    .query(opts => {
-      return {
-        a: `coucou`,
-        b: 1234
-      }
-    })*/
 });
 
 export const appRouter = t.router({

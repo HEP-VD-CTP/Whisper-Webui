@@ -1,16 +1,8 @@
 import Fastify  from 'fastify';
 
 import mercurius from 'mercurius';
-import service from 'src/db/service.ts';
-import lib from 'src/lib/index.ts';
-import resolvers from 'src/graphql/resolvers.ts';
-import { User, insertUser } from "src/db/types.ts";
-import depthLimit from 'graphql-depth-limit';
 import fastifyCookie from '@fastify/cookie';
 
-import store from 'src/db/store.ts';
-
-import { schema, errorFormatter } from "src/graphql/graphql.ts";
 
 import logger from 'src/lib/logger.ts';
 
@@ -21,11 +13,6 @@ import {
 
 import { appRouter, type AppRouter } from '@whisper-webui/lib/src/trpc/router.ts';
 import { createContext } from '@whisper-webui/lib/src/trpc/context.ts';
-import { ForbiddenException } from './lib/exceptions.ts';
-
-
-import { TRPCError } from '@trpc/server';
-import { TRPCErrorResponse } from '@trpc/server/rpc';
 
 
 const PORT: number = 9000;
@@ -44,22 +31,6 @@ app.register(fastifyTRPCPlugin, {
       console.error(`Error in tRPC handler on path '${path}': ${error}`);
     },
   } satisfies FastifyTRPCPluginOptions<AppRouter>['trpcOptions'],
-});
-
-app.register(mercurius, {
-  schema,
-  resolvers,
-  loaders: {},
-  graphiql: process.env.NODE_ENV == 'development', // enable graphiql in development
-  cache: true,
-  validationRules: [depthLimit(5)],
-  errorFormatter
-});
-
-// Declare a route
-app.get('/hello', async (request, reply) => {
-  console.log(`hello route called`);
-  return { message: 'Hello World 2' };
 });
 
 app.addHook('preHandler', async (request, reply) => {});
