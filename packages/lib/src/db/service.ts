@@ -38,8 +38,18 @@ export async function login(email: string, password: string): Promise<User> {
   return user;
 }
 
+export async function updatePassword(id: string, pwd: string): Promise<void> {
+  const salt = crypto.randomBytes(Math.ceil(45/2)).toString(`hex`).slice(0, 45);
+  const sign = crypto.createHash(`sha512`).update(`${pwd}${salt}`).digest(`hex`);
+
+  await usersDAO.update(db.pool(), { id, pwd: sign, salt });
+}
+
 export default {
   auth: {
     login
+  },
+  users: {
+    updatePassword
   }
 };

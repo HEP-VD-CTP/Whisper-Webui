@@ -53,14 +53,12 @@ const btnLoading = ref(false);
 const q: QVueGlobals = useQuasar(); 
 
 async function test(){
-  const x = await lib.query.gql(`
-  query {
-    Users {
-      test
-    }
+  try{
+    const x = await trpc.auth.renew.query();
   }
-  `);
-  console.log(x);
+  catch(err){
+    
+  }
 }
 
 async function login(): Promise<void> {
@@ -72,7 +70,7 @@ async function login(): Promise<void> {
     router.push('/');
   }
   catch(err){
-    console.error(`${err.shape.data.httpStatus} ${err.shape.data.code}`);
+    
     q.dialog({
       title: t('misc.error'),
       message: t('login_page.invalid'),

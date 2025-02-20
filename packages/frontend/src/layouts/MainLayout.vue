@@ -134,6 +134,8 @@ import { User } from "@whisper-webui/backend/src/graphql/types.ts"
 import lib  from 'src/lib/index';
 import { useRouter, Router } from 'vue-router';
 import { userInfo } from 'os';
+import trpc from 'src/lib/trpc';
+
 
 const { t, locale } = useI18n();
 const store = whisperStore();
@@ -152,77 +154,54 @@ onServerPrefetch(async () => {
 
   // check the user session
   const sessionId = q.cookies.get('sessionId');
+
   if (!sessionId)  // if there is no current session provided
-    return console.log(`NO SESSION`);
+    return console.log(`NO SESSION ID`);
 
-  // get the user data
-
-  const query = `
-  mutation AuthMutation {
-    Auth {
-      renew {
-        id
-        firstname
-        lastname
-        email
-        admin
-        created_at
-        archived
-        blocked
-      }
-    }
-  }`.trim();
-  
+  // try to get the user session infos
   try {
-    const response = await fetch(`http://whisper-webui-backend:9000/graphql`, {
-      method: 'POST',
-      headers: { 
+    // we will try to get the user session using a regular http query 
+    // to the trpc endpoint. The same query with trpc would be:
+    //const user = await trpc.auth.renew.query();
+    const response = await fetch(`http://whisper-webui-backend:9000/trpc/auth.renew`, {
+      method: 'GET',
+      headers: {
         'Content-Type': 'application/json',
-        'Cookie': `sessionId=${sessionId}` 
-      }, 
-      body: JSON.stringify({query: query})
+        'Cookie': `sessionId=${sessionId}`
+      },
     });
 
-    // invalid session
-    if (response.status >= 400) 
-      return console.log(`INVALID SESSION`);
-      
-    // get the user
-    const user: User = (await response.json()).data.Auth.renew;
-    
+    if (!response.ok) 
+      throw new Error(`HTTP error! status: ${response.status}`);
+
     // store the user data
+    const user = (await response.json()).result.data.json as User;
     store.setUser(user);
   }
   catch(err){
-    console.error(err);
+    console.error(`Query user session failed: `, err);
   }
 });
 
 async function changePwd(): Promise<void> {
   q.dialog({
-          title: t('user.change_password'),
-          prompt: {
-            model: '',
-            isValid: val => val.length >= 6 && val.length <= 255, 
-            type: 'password'
-          },
-          cancel: {
-            label: t('misc.cancel'),
-            flat: true
-          },
-          persistent: true
-        }).onOk(async data => {
-          console.log(data);
-          await lib.query.gql(`
-          mutation UpdateUserPassword($id: UID!, $pwd: NonEmptyString!) {
-            Users {
-              updatePassword(id: $id, pwd: $pwd)
-            }
-          }`, {
-            id: store.user.id,
-            pwd: data
-          });
-        })
+    title: t('user.change_password'),
+    prompt: {
+      model: '',
+      isValid: val => val.length >= 6 && val.length <= 255, 
+      type: 'password'
+    },
+    cancel: {
+      label: t('misc.cancel'),
+      flat: true
+    },
+    persistent: true
+  }).onOk(async data => {
+    trpc.users.updatePassword.mutate({
+      id: store.user.id,  
+      pwd: data
+    });
+  });
 }
 
 function setDarkMode(mode: boolean): void{

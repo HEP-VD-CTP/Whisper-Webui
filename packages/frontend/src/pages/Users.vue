@@ -38,9 +38,10 @@ import { whisperStore } from 'stores/WhisperStore';
 import { useI18n } from 'vue-i18n';
 import { useRouter, Router, RouteLocationNormalized } from 'vue-router';
 import lib  from 'src/lib/index';
+import trpc from 'src/lib/trpc';
+import { type User } from "@whisper-webui/lib/src/types/types.ts";
 
 const router: Router = useRouter(); 
-
 
 const { t } = useI18n();
 const store = whisperStore();
@@ -53,34 +54,19 @@ const splitterPosition: Ref<number> = ref(33);
 
 const userSearched: Ref<string> = ref('');
 
+const usersFound: Ref<Array<User>> = ref([]);
+
 watch(userSearched, async (newVal: string, oldVal: string) => {
   newVal = newVal.trim().replace(/\s+/g, ` `);
 
   console.log(newVal);
 
-  if (newVal == oldVal) 
-    return;
+  if (newVal == oldVal || newVal.length < 3) 
+    return usersFound.value = [];
 
+  const users = await trpc.users.search.query(newVal);
 
-  const users = (await lib.query.gql(`
-  query SearchUsers($term: NonEmptyString!) {
-    Users {
-      search(term: $term) {
-        id
-        firstname
-        lastname
-        email
-        admin
-        created_at
-        archived
-        blocked
-      }
-    }
-  }`, {
-    term: newVal
-  }));
-
-  console.log(users.data.Users.search);
+  console.log(users);
 });
 
 onMounted(() => {

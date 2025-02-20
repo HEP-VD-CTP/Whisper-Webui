@@ -22,8 +22,8 @@ async function gql(query: string, body: Record<string, any> = {}, redirectOn401:
   });
    
   // display the error page if the response status is 401
-  if (response.status === 401 && redirectOn401) 
-    window.location.href = '/expired';
+  //if (response.status === 401 && redirectOn401) 
+  //  window.location.href = '/expired';
 
   // get the headers
   const headers: Record<string, string> = {};
