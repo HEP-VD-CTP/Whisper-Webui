@@ -27,7 +27,9 @@ const fr: TranslationSchema = {
   users: {
     add_user: `Ajouter un utilisateur`,
     search_user: `Rechercher un utilisateur`,
-    users: `Utilisateurs`
+    users: `Utilisateurs`,
+    use_filter: `Veuillez utiliser le filtre`,
+    no_results: `Aucun résultat`
   },
   validation: {
     email: {

@@ -111,9 +111,9 @@ const authRouter = t.router({
   login: publicProcedure
   .input(z.object({
     email: z.string().email().max(255),
-    pwd: passwordZodValidation
+    pwd: passwordZodValidation,
   }))
-  .query(async opts => {
+  .mutation(async opts => {
     const user = await DAO.service.auth.login(opts.input.email, opts.input.pwd);
 
     // create a new session for the user
@@ -141,6 +141,7 @@ const authRouter = t.router({
 
 const usersRouter = t.router({
   test: adminProcedure
+  .input(z.string())
   .query(opts => {
     console.log(`TEST from server`);
     console.log(opts.ctx.user);
@@ -149,7 +150,7 @@ const usersRouter = t.router({
   search: adminProcedure
   .input(z.string().min(3).max(255))
   .query(async opts => {
-    return await DAO.users.searchUsers(db.pool(), opts.input, [
+    return await DAO.users.searchUsers(db.pool(), opts.input.trim().replace(/\s+/g, ` `), [
       'id', 'firstname', 'lastname', 'email', 'admin', 'archived', 'blocked', 'created_at'
     ]);
   }),

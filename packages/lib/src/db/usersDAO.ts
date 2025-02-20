@@ -3,7 +3,7 @@ import { type User, type UserFields } from '@whisper-webui/lib/src/types/types.t
 import { BadRequestException, NotFoundException } from '@whisper-webui/lib/src/db/exceptions.ts';
 import { ResultSetHeader } from 'mysql2/promise';
 
-export function parseUsersFields(users: Array<User>): Array<User> {
+export function parseFields(users: Array<User>): Array<User> {
   for (const user of users){
     if ('id' in user)
       user.id = ((user.id as unknown) as Buffer).toString('hex').toUpperCase();
@@ -25,7 +25,7 @@ export async function findByEmail(db: DB, email: string, fields: UserFields): Pr
   FROM users u
   WHERE u.email = ?`, [email]);
   
-  return parseUsersFields(query as Array<User>);
+  return parseFields(query as Array<User>);
 }
 
 export async function searchUsers(db: DB, term: string, fields: UserFields): Promise<Array<User>> {
@@ -33,10 +33,10 @@ export async function searchUsers(db: DB, term: string, fields: UserFields): Pro
   SELECT ${escapeFields(fields.join(`,`))}
   FROM users u
   WHERE MATCH(u.firstname, u.lastname, u.email)
-  AGAINST(? IN NATURAL LANGUAGE MODE)
+  AGAINST(? IN BOOLEAN MODE)
   ORDER BY u.firstname ASC, u.lastname ASC, u.email ASC`, [term]);
 
-  return parseUsersFields(users as Array<User>);
+  return parseFields(users as Array<User>);
 }
 
 export async function update(db: DB, user: User = {}) :Promise<void> {

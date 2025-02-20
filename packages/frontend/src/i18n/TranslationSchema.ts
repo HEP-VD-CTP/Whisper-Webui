@@ -27,6 +27,8 @@ export type TranslationSchema = {
     add_user: string, 
     search_user: string,
     users: string,
+    use_filter: string,
+    no_results: string
   },
   validation: {
     email: {

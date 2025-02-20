@@ -55,10 +55,10 @@ const q: QVueGlobals = useQuasar();
 async function test(){
   try{
     //const x = await trpc.auth.renew.query();
-    const x = await trpc.users.test.query();
+    const x = await trpc.users.test.query("true");
   }
   catch(err){
-    
+    console.error(err);
   }
 }
 
@@ -66,7 +66,7 @@ async function login(): Promise<void> {
   btnLoading.value = true;
 
   try {
-    const user = await trpc.auth.login.query({email: email.value, pwd: password.value});
+    const user = await trpc.auth.login.mutate({email: email.value, pwd: password.value});
     store.setUser(user);
     router.push('/');
   }

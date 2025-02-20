@@ -27,7 +27,9 @@ const en: TranslationSchema = {
   users: {
     add_user: `Add user`,
     search_user: `Search user`,
-    users: `Users`
+    users: `Users`,
+    use_filter: `Please use the filter`,
+    no_results: `No results`
   },
   validation: {  
     email: {

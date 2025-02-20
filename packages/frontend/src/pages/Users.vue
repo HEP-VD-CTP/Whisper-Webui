@@ -20,10 +20,33 @@
             </template>
           </q-input>
         </div>
+
+        <div class="q-mt-sm text-center">
+          <span v-if="userSearched.length < 3">{{ $t('users.use_filter') }}</span>
+          <span v-else-if="!usersFound.length">{{ $t('users.no_results') }}</span>
+          <span v-else-if="usersFound.length">{{ $t('users.users') }} ({{ usersFound.length }})</span>
+        </div>
+
+        <div>
+          <q-list class="q-mt-xs" separator dense>
+            <q-item @click="" v-for="user in usersFound" :key="user.id" clickable v-ripple>
+              <q-item-section avatar>
+                <q-avatar :color="user?.blocked ? 'negative' : user?.archived ? 'grey' : 'primary' " text-color="white">
+                  {{ user.firstname?.charAt(0).toUpperCase() }}{{ user.lastname?.charAt(0).toUpperCase() }} 
+                </q-avatar>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ user?.firstname }} {{ user?.lastname }}</q-item-label>
+                <q-item-label caption lines="1">{{ user?.email }}</q-item-label>
+              </q-item-section>
+            </q-item>
+
+          </q-list>
+        </div>
       </template>
 
       <template v-slot:after>
-        coucou
+        {{ usersFound }}
       </template>
 
     </q-splitter>
@@ -59,14 +82,11 @@ const usersFound: Ref<Array<User>> = ref([]);
 watch(userSearched, async (newVal: string, oldVal: string) => {
   newVal = newVal.trim().replace(/\s+/g, ` `);
 
-  console.log(newVal);
-
   if (newVal == oldVal || newVal.length < 3) 
     return usersFound.value = [];
 
   const users = await trpc.users.search.query(newVal);
-
-  console.log(users);
+  usersFound.value = users;
 });
 
 onMounted(() => {
