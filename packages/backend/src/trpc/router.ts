@@ -3,7 +3,6 @@ import { set, z } from 'zod';
 import superjson from 'superjson';
 
 import DAO from '@whisper-webui/lib/src/db/DAO.ts';
-import db from '@whisper-webui/lib/src/db/db.ts';
 import store from '@whisper-webui/lib/src/db/store.ts';
 import lib from '@whisper-webui/lib/src/lib/index.ts';
 import { ForbiddenException, UnauthorizedException } from '@whisper-webui/lib/src/db/exceptions.ts';
@@ -29,9 +28,10 @@ const idZodValidation = z.string().refine((val) => {
 });
 
 const passwordZodValidation = z.string().min(6).max(255);
+const emailZodValidation = z.string().email().max(255);
 
 // user session expiration time
-const exp: number = parseInt(process.env.USER_SESSION_EXP_TIME);
+const exp: number = parseInt(process.env.USER_SESSION_EXP_TIME || '86400');
 
 export const t = initTRPC.context<Context>().create({
   transformer: superjson,
@@ -63,17 +63,21 @@ export const t = initTRPC.context<Context>().create({
 
 // Authenticate the user session
 export const sessionProcessing = t.middleware(async ({ ctx, next }) => {
-  // @ts-ignore 
-  const sessionId: string = ctx.req.cookies.sessionId;
-  if (!sessionId)
+  // sessionId provided by the user cookie
+  if (!ctx.req.cookies.sessionId)
     throw new UnauthorizedException(`SessionId not found`);
+
+  const sessionId: string = ctx.req.cookies.sessionId;
   
+  // get the session stored in redis
   const user = await store.getSession(sessionId);
   if (!user)
     throw new UnauthorizedException(`Session not found`);
   
   // extends the session
   await store.extendSession(sessionId, exp);
+
+  // save the user in the context
   ctx["user"] = user;
 
   return next();
@@ -82,8 +86,9 @@ export const sessionProcessing = t.middleware(async ({ ctx, next }) => {
 export const publicProcedure = t.procedure;
 export const authedProcedure = t.procedure.use(sessionProcessing);
 export const adminProcedure  = t.procedure.use(sessionProcessing).use(async ({ ctx, next }) => {
-  if (!ctx.user.admin)
+  if (!ctx.user || !ctx.user.admin)
     throw new ForbiddenException(`You can't access this route`);
+  
   return next();
 }); 
 
@@ -110,11 +115,11 @@ function removeSessionCookie(ctx: any){
 const authRouter = t.router({
   login: publicProcedure
   .input(z.object({
-    email: z.string().email().max(255),
+    email: emailZodValidation,
     pwd: passwordZodValidation,
   }))
   .mutation(async opts => {
-    const user = await DAO.service.auth.login(opts.input.email, opts.input.pwd);
+    const user = await DAO.users.login(opts.input.email, opts.input.pwd);
 
     // create a new session for the user
     const sessionId = lib.uid.genUID();
@@ -125,7 +130,6 @@ const authRouter = t.router({
   logout: publicProcedure
   .query(async opts => {
       removeSessionCookie(opts.ctx);
-      // @ts-ignore
       await store.deleteSession(opts.ctx.req.cookies.sessionId);
   }),
   renew: authedProcedure
@@ -150,9 +154,7 @@ const usersRouter = t.router({
   search: adminProcedure
   .input(z.string().min(3).max(255))
   .query(async opts => {
-    return await DAO.users.searchUsers(db.pool(), opts.input.trim().replace(/\s+/g, ` `), [
-      'id', 'firstname', 'lastname', 'email', 'admin', 'archived', 'blocked', 'created_at'
-    ]);
+    return await DAO.users.searchUsers(opts.input.trim().replace(/\s+/g, ` `));
   }),
   updatePassword: authedProcedure
   .input(z.object({
@@ -160,10 +162,12 @@ const usersRouter = t.router({
     pwd: z.string().min(6).max(255)
   }))
   .mutation(async opts => {
+    if (!opts.ctx.user)
+      throw new ForbiddenException(`User not authenticated`);
     if (opts.input.id != opts.ctx.user.id && !opts.ctx.user.admin)
       throw new ForbiddenException(`You can't change other users password`);
     
-    await DAO.service.users.updatePassword(opts.input.id, opts.input.pwd);
+    await DAO.users.updatePassword(opts.input.id, opts.input.pwd);
   }),
 });
 

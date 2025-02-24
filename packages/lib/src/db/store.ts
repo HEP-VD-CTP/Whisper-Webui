@@ -1,6 +1,6 @@
 import IORedis from 'ioredis';
 
-import { User } from '@whisper-webui/lib/src/types/types.ts';
+import { type UserWithoutPassword } from '@whisper-webui/lib/src/types/kysely.ts';
 
 // @ts-ignore 
 const redis = new IORedis({
@@ -9,12 +9,12 @@ const redis = new IORedis({
 });
 
 // store a session in redis with a given expiry time, by default 1 day
-async function createSession(sessionId: string, sessionData: User, expSeconds: number = 86400): Promise<string> {
+async function createSession(sessionId: string, sessionData: UserWithoutPassword, expSeconds: number = 86400): Promise<string> {
   const key = `session:${sessionId}`;
   return await redis.set(key, JSON.stringify(sessionData), 'EX', expSeconds);
 }
 
-async function getSession(sessionId: string) : Promise<User> {
+async function getSession(sessionId: string) : Promise<UserWithoutPassword> {
   return JSON.parse(await redis.get(`session:${sessionId}`));
 }
 

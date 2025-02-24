@@ -133,7 +133,6 @@ import { useI18n } from 'vue-i18n';
 import { User } from "@whisper-webui/lib/src/types/types.ts"
 import lib  from 'src/lib/index';
 import { useRouter, Router } from 'vue-router';
-import { userInfo } from 'os';
 import trpc from 'src/lib/trpc';
 
 

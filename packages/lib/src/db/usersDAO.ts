@@ -1,67 +1,93 @@
-import { DB, escape, escapeFields } from '@whisper-webui/lib/src/db/db.ts';
-import { type User, type UserFields } from '@whisper-webui/lib/src/types/types.ts';
-import { BadRequestException, NotFoundException } from '@whisper-webui/lib/src/db/exceptions.ts';
-import { ResultSetHeader } from 'mysql2/promise';
+import { BadRequestException, NotFoundException, ForbiddenException } from '@whisper-webui/lib/src/db/exceptions.ts';
+import { db } from '@whisper-webui/lib/src/db/db2.ts';
+import { 
+  type User, 
+  type UpdateUser,
+  type UserWithoutPassword,
+} from '@whisper-webui/lib/src/types/kysely.ts';
+import { sql } from 'kysely';
+import crypto from 'node:crypto';
 
-export function parseFields(users: Array<User>): Array<User> {
+export async function searchUsers(term: string): Promise<Array<UserWithoutPassword>> {
+  const users = await db.selectFrom('users')
+                        .selectAll()
+                        .where((eb) => sql`MATCH(firstname, lastname, email) AGAINST (${term} IN BOOLEAN MODE)`)
+                        .orderBy('firstname', 'asc')
+                        .orderBy('lastname', 'asc')
+                        .orderBy('email', 'asc')
+                        .execute();
+
   for (const user of users){
-    if ('id' in user)
-      user.id = ((user.id as unknown) as Buffer).toString('hex').toUpperCase();
-    if ('admin' in user)
-      user.admin = Boolean(user.admin);
-    if ('archived' in user)
-      user.archived = Boolean(user.archived);
-    if ('blocked' in user)
-      user.blocked = Boolean(user.blocked);
-    if ('created_at' in user)
-      user.created_at = new Date(user.created_at);
+    if (`pwd` in user)
+      delete user.pwd;
+    if (`salt` in user)
+      delete user.salt;
   }
+
   return users;
 }
 
-export async function findByEmail(db: DB, email: string, fields: UserFields): Promise<Array<User>> {
-  const query = await db.query(`
-  SELECT ${escapeFields(fields.join(`,`))}
-  FROM users u
-  WHERE u.email = ?`, [email]);
-  
-  return parseFields(query as Array<User>);
-}
+export async function update(id: string, user: UpdateUser): Promise<void> {
+  if ('id' in user)
+    delete user.id;
 
-export async function searchUsers(db: DB, term: string, fields: UserFields): Promise<Array<User>> {
-  const users = await db.query(`
-  SELECT ${escapeFields(fields.join(`,`))}
-  FROM users u
-  WHERE MATCH(u.firstname, u.lastname, u.email)
-  AGAINST(? IN BOOLEAN MODE)
-  ORDER BY u.firstname ASC, u.lastname ASC, u.email ASC`, [term]);
+  if (!Object.keys(user).length)
+    throw new BadRequestException(`No fields to update`);
 
-  return parseFields(users as Array<User>);
-}
-
-export async function update(db: DB, user: User = {}) :Promise<void> {
-  if (!(`id` in user))
-    throw new BadRequestException(`User id is required to update the user`);
-
-  const id = user.id;
-  delete user.id;
-
-  const fields = Object.keys(user);
-  const values = fields.map(field => user[field]);
-  const setClause = fields.map(field => `${field} = ?`).join(', ');
-
-  const query = `
-  UPDATE users
-  SET ${escapeFields(setClause)}
-  WHERE id = UNHEX(?)`;
-
-  const res = await db.query(query, [...values, id]) as ResultSetHeader;
-  if (res.affectedRows === 0)
+  const res = await db.updateTable('users')
+                      .set(user)
+                      .where('id', '=', Buffer.from(id, 'hex'))
+                      .execute()
+                
+  if (res[0].numUpdatedRows == BigInt(0))
     throw new NotFoundException(`User not found`);
-} 
+}
+
+export async function updatePassword(id: string, pwd: string): Promise<void> {
+  const salt = crypto.randomBytes(Math.ceil(45/2)).toString(`hex`).slice(0, 45);
+  const sign = crypto.createHash(`sha512`).update(`${pwd}${salt}`).digest(`hex`);
+
+  await update(id, { pwd: sign, salt });
+}
+
+export async function login(email: string, password: string): Promise<UserWithoutPassword> {
+  // we get all the users with this email address
+  const users = await db.selectFrom('users')
+                        .selectAll()
+                        .where('email', '=', email)
+                        .execute();
+
+  // we want to keep the only user that has not been archived
+  let user: User = null;
+  for (const u of users){
+    if (u.archived === false) {
+      user = u;
+      break;
+    }
+  }
+
+  // check if user is able to login
+  if (user == null)
+    throw new NotFoundException(`User not found`);
+  if (user.blocked)
+    throw new ForbiddenException(`User is blocked`);
+
+  // check the user password
+  const sign = crypto.createHash(`sha512`).update(`${password}${user.salt}`).digest(`hex`);
+  if (sign !== user.pwd)
+    throw new ForbiddenException(`Invalid password`);
+
+  if (`pwd` in user)
+    delete user.pwd;
+  if (`salt` in user)
+    delete user.salt;
+  
+  return user;
+}
 
 export default {
-  findByEmail,
+  login,
   searchUsers,
   update,
+  updatePassword
 };
