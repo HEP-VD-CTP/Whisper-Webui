@@ -5,9 +5,10 @@ import superjson from 'superjson';
 import DAO from '@whisper-webui/lib/src/db/DAO.ts';
 import store from '@whisper-webui/lib/src/db/store.ts';
 import lib from '@whisper-webui/lib/src/lib/index.ts';
-import { ForbiddenException, UnauthorizedException } from '@whisper-webui/lib/src/db/exceptions.ts';
+import { BadRequestException, ForbiddenException, UnauthorizedException } from '@whisper-webui/lib/src/db/exceptions.ts';
 
 import { Context } from 'src/trpc/context.ts';
+import { UserWithoutPassword } from '@whisper-webui/lib/src/types/kysely.ts';
 
 const idZodValidation = z.string().refine((val) => {
   // id must be 24 length string
@@ -27,6 +28,7 @@ const idZodValidation = z.string().refine((val) => {
   message: "INVALID ID. Must be 24 characters long and contain only UPPERCASE hexadecimal characters.",
 });
 
+const nameZodValidation = z.string().min(1).max(255);
 const passwordZodValidation = z.string().min(6).max(255);
 const emailZodValidation = z.string().email().max(255);
 
@@ -88,7 +90,7 @@ export const authedProcedure = t.procedure.use(sessionProcessing);
 export const adminProcedure  = t.procedure.use(sessionProcessing).use(async ({ ctx, next }) => {
   if (!ctx.user || !ctx.user.admin)
     throw new ForbiddenException(`You can't access this route`);
-  
+
   return next();
 }); 
 
@@ -111,8 +113,8 @@ function removeSessionCookie(ctx: any){
 //
 // Auth router
 //
-
 const authRouter = t.router({
+  // user login
   login: publicProcedure
   .input(z.object({
     email: emailZodValidation,
@@ -127,11 +129,18 @@ const authRouter = t.router({
     setSessionCookie(opts.ctx, sessionId, exp);
     return user;
   }),
+
+  // user logout
   logout: publicProcedure
   .query(async opts => {
-      removeSessionCookie(opts.ctx);
-      await store.deleteSession(opts.ctx.req.cookies.sessionId);
+    if (!opts.ctx.req.cookies.sessionId)
+      throw new BadRequestException(`SessionId not found`);
+
+    removeSessionCookie(opts.ctx);
+    await store.deleteSession(opts.ctx.req.cookies.sessionId);
   }),
+
+  // user extend session
   renew: authedProcedure
     .query(opts => { 
       return opts.ctx.user;
@@ -151,11 +160,32 @@ const usersRouter = t.router({
     console.log(opts.ctx.user);
     return true;
   }),
-  search: adminProcedure
-  .input(z.string().min(3).max(255))
+
+  // find a user
+  find: adminProcedure
+  .input(z.string())
   .query(async opts => {
-    return await DAO.users.searchUsers(opts.input.trim().replace(/\s+/g, ` `));
+    const user = await DAO.users.findById(opts.input) as UserWithoutPassword;
+    if (`pwd` in user) delete user.pwd;
+    if (`salt` in user) delete user.salt;
+    return user;
   }),
+
+  // full-text search a user
+  search: adminProcedure
+  .input(z.string().min(1).max(255))
+  .query(async opts => {
+    const term = opts.input.trim().replace(/\s+/g, ` `);
+    return term == '*' ? await DAO.users.findAll() : await DAO.users.searchUsers(term);
+  }),
+
+  // get users statistics
+  stats: adminProcedure
+  .query(async opts => {
+    return await DAO.users.stats();
+  }),
+
+  // update user password
   updatePassword: authedProcedure
   .input(z.object({
     id: idZodValidation,
@@ -169,6 +199,60 @@ const usersRouter = t.router({
     
     await DAO.users.updatePassword(opts.input.id, opts.input.pwd);
   }),
+
+  // update user password
+  updateSettings: adminProcedure
+  .input(z.object({
+    id: idZodValidation,
+    args: z.object({
+      admin: z.boolean().optional(),
+      archived: z.boolean().optional(),
+      blocked: z.boolean().optional(),
+      firstname: nameZodValidation.optional(),
+      lastname: nameZodValidation.optional(),
+      email: emailZodValidation.optional()
+    })
+  }))
+  .mutation(async opts => {
+    if (!Object.keys(opts.input.args).length)
+      throw new BadRequestException(`No arguments provided`);
+
+    if (`firstname` in opts.input.args)
+      await DAO.users.update(opts.input.id, { firstname: opts.input.args.firstname });
+
+    if (`lastname` in opts.input.args)
+      await DAO.users.update(opts.input.id, { lastname: opts.input.args.lastname });
+
+    if (`email` in opts.input.args){
+      await DAO.users.userUnarchivable(opts.input.args.email || ""); 
+      await DAO.users.update(opts.input.id, { email: opts.input.args.email });
+    }
+      
+    if (`admin` in opts.input.args)
+      await DAO.users.update(opts.input.id, { admin: opts.input.args.admin });
+
+    if (`blocked` in opts.input.args)
+      await DAO.users.update(opts.input.id, { blocked: opts.input.args.blocked });
+      
+    if (`archived` in opts.input.args){
+      // to unarchive a user, we need to check if the email is already associated with an active user
+      if (!opts.input.args.archived){
+        const user = await DAO.users.findById(opts.input.id);
+        await DAO.users.userUnarchivable(user.email);  
+      } 
+      await DAO.users.update(opts.input.id, { archived: opts.input.args.archived });
+    }
+  }),
+
+  // delete a user
+  deleteUser: adminProcedure
+  .input(idZodValidation)
+  .mutation(async opts => {
+    await DAO.users.deleteUser(opts.input);
+  }),
+  
+
+
 });
 
 export const appRouter = t.router({

@@ -103,8 +103,8 @@
               <q-list>
                 <q-item clickable v-ripple>
                   <q-item-section>
-                    <q-item-label>{{ store.user.email }}</q-item-label>
-                    <q-item-label caption>{{ store.user.firstname }} {{ store.user.lastname }}</q-item-label>
+                    <q-item-label>{{ store.user.firstname }} {{ store.user.lastname }}</q-item-label>
+                    <q-item-label caption>{{ store.user.email }}</q-item-label>
                   </q-item-section>
                 </q-item>
               </q-list>
@@ -130,7 +130,7 @@ import type { Ref} from 'vue';
 import { useQuasar, QVueGlobals } from 'quasar';
 import { whisperStore } from 'stores/WhisperStore';
 import { useI18n } from 'vue-i18n';
-import { User } from "@whisper-webui/lib/src/types/types.ts"
+import { UserWithoutPassword } from "@whisper-webui/lib/src/types/kysely.ts"
 import lib  from 'src/lib/index';
 import { useRouter, Router } from 'vue-router';
 import trpc from 'src/lib/trpc';
@@ -174,7 +174,7 @@ onServerPrefetch(async () => {
       throw new Error(`HTTP error! status: ${response.status}`);
 
     // store the user data
-    const user = (await response.json()).result.data.json as User;
+    const user = (await response.json()).result.data.json as UserWithoutPassword;
     store.setUser(user);
   }
   catch(err){
@@ -197,7 +197,7 @@ async function changePwd(): Promise<void> {
     persistent: true
   }).onOk(async data => {
     trpc.users.updatePassword.mutate({
-      id: store.user.id,  
+      id: store.user.id.toString(),  
       pwd: data
     });
   });

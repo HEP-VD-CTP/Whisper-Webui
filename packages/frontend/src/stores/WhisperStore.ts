@@ -1,20 +1,20 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import type { Ref } from 'vue';
-import { User } from "@whisper-webui/lib/src/types/types.ts"
+import { UserWithoutPassword } from "@whisper-webui/lib/src/types/kysely.ts"
 
 
 export const whisperStore = defineStore('whisper', () => {
   // ########
   // # user #
   // ########
-  const user: Ref<User> = ref(null);
+  const user: Ref<UserWithoutPassword> = ref(null);
 
-  function getUser(): User {
+  function getUser(): UserWithoutPassword {
     return user.value;
   }
 
-  function setUser(newUser: User): void {
+  function setUser(newUser: UserWithoutPassword): void {
     user.value = newUser;
   }
 

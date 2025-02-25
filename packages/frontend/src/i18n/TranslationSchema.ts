@@ -12,18 +12,45 @@ export type TranslationSchema = {
     appearance: string,
     cancel: string, 
     close: string,
+    delete: string, 
     error: string,
     language: string,
     settings: string,
-    
+    created_at: string,
+    wrong_input: string
   },
   user: {
+    firstname: string, 
+    lastname: string, 
     email: string, 
     password: string,
     user_account: string,
     change_password: string,
   },
   users: {
+    admin_role: {
+      title: string,
+      description: string
+    },
+    archived_role: {
+      title: string,
+      description: string
+    },
+    blocked_role: {
+      title: string, 
+      description: string
+    },
+    delete: {
+      title: string,
+      message: string
+    },
+    unarchivable: string,
+    user_details: string,
+    stats: string, 
+    total: string, 
+    archived: string,
+    blocked: string,
+    instructions: string, 
     add_user: string, 
     search_user: string,
     users: string,
@@ -31,6 +58,10 @@ export type TranslationSchema = {
     no_results: string
   },
   validation: {
+    name: {
+      mandatory: string,
+      maxLength: string
+    },
     email: {
       mandatory: string,
       maxLength: string,

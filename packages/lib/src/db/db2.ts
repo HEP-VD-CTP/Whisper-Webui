@@ -12,13 +12,14 @@ const dialect = new MysqlDialect({
     connectionLimit: 10,
     queueLimit: 0,
     
-    // this function will take a look at each field of the return
-    // query and apply transformations to it
+    // This function will take a look at each field of the return
+    // query data and apply transformations to it.
     typeCast(field, next) {
-      
+      // turn binary id to hex string
       if (field.name == 'id' && field.type === 'STRING'){
         return field.buffer().toString(`hex`).toUpperCase();
       }
+      // turn tinyint(1) to boolean
       else if (field.type === 'TINY' && field.length === 1) {
         return field.string() === '1'
       }

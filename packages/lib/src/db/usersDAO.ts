@@ -1,12 +1,73 @@
-import { BadRequestException, NotFoundException, ForbiddenException } from '@whisper-webui/lib/src/db/exceptions.ts';
+import { BadRequestException, NotFoundException, ForbiddenException, ConflictException } from '@whisper-webui/lib/src/db/exceptions.ts';
 import { db } from '@whisper-webui/lib/src/db/db2.ts';
 import { 
   type User, 
   type UpdateUser,
   type UserWithoutPassword,
 } from '@whisper-webui/lib/src/types/kysely.ts';
+import { type UsersStats } from '@whisper-webui/lib/src/types/types.ts';
 import { sql } from 'kysely';
 import crypto from 'node:crypto';
+import { string } from 'zod';
+
+export async function findAll(): Promise<Array<UserWithoutPassword>> {
+  const users = await db.selectFrom('users')
+                        .selectAll()
+                        .orderBy('firstname', 'asc')
+                        .orderBy('lastname', 'asc')
+                        .orderBy('email', 'asc')
+                        .execute();
+
+  for (const user of users){
+    delete user['pwd'];
+    delete user['salt'];
+  }
+  
+  return users;
+}
+
+export async function findById(id: string): Promise<User> {
+  const user = await db.selectFrom('users')
+                       .selectAll()
+                       .where('id', '=', Buffer.from(id, 'hex'))
+                       .executeTakeFirst();
+  
+  if (user == null)
+    throw new NotFoundException(`User not found`);
+
+  return user;
+}
+
+async function deleteUser(id: string): Promise<void> {
+  const res = await db.deleteFrom('users')
+                      .where('id', '=', Buffer.from(id, 'hex'))
+                      .executeTakeFirst();
+
+  if (res.numDeletedRows == BigInt(0))
+    throw new NotFoundException(`User not found`);
+}
+
+export async function stats(): Promise<UsersStats> {
+  const users = await db.selectFrom('users')
+                        .select(['archived', 'blocked'])
+                        .execute();
+
+  let archived: number = 0;
+  let blocked: number = 0;
+
+  for (const user of users){
+    if (user.archived)
+      archived++;
+    if (user.blocked)
+      blocked++;
+  }
+
+  return {
+    total: users.length,
+    archived,
+    blocked
+  };
+}
 
 export async function searchUsers(term: string): Promise<Array<UserWithoutPassword>> {
   const users = await db.selectFrom('users')
@@ -18,10 +79,8 @@ export async function searchUsers(term: string): Promise<Array<UserWithoutPasswo
                         .execute();
 
   for (const user of users){
-    if (`pwd` in user)
-      delete user.pwd;
-    if (`salt` in user)
-      delete user.salt;
+    delete user['pwd'];
+    delete user['salt'];
   }
 
   return users;
@@ -48,6 +107,17 @@ export async function updatePassword(id: string, pwd: string): Promise<void> {
   const sign = crypto.createHash(`sha512`).update(`${pwd}${salt}`).digest(`hex`);
 
   await update(id, { pwd: sign, salt });
+}
+
+export async function userUnarchivable(email: string): Promise<void> {
+  const users = await db.selectFrom('users')
+                        .select('archived')
+                        .where('email', '=', email)
+                        .execute();
+
+  for (const user of users)
+    if (user.archived === false)
+      throw new ConflictException(`User already unarchived`);
 }
 
 export async function login(email: string, password: string): Promise<UserWithoutPassword> {
@@ -86,8 +156,13 @@ export async function login(email: string, password: string): Promise<UserWithou
 }
 
 export default {
+  findAll,
+  findById,
+  deleteUser,
   login,
   searchUsers,
   update,
-  updatePassword
+  updatePassword,
+  userUnarchivable,
+  stats
 };

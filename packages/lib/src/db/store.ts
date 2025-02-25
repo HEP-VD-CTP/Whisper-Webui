@@ -8,7 +8,7 @@ const redis = new IORedis({
   port: 6379,
 });
 
-// store a session in redis with a given expiry time, by default 1 day
+// Store a session in redis with a given expiry time, by default 1 day.
 async function createSession(sessionId: string, sessionData: UserWithoutPassword, expSeconds: number = 86400): Promise<string> {
   const key = `session:${sessionId}`;
   return await redis.set(key, JSON.stringify(sessionData), 'EX', expSeconds);
@@ -22,7 +22,7 @@ async function extendSession(sessionId: string, expSeconds: number): Promise<str
   return await redis.expire(`session:${sessionId}`, expSeconds);
 }
 
-async function deleteSession(sessionId): Promise<string>{
+async function deleteSession(sessionId: string): Promise<string> {
   return await redis.del(`session:${sessionId}`);
 }
 
