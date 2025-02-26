@@ -46,6 +46,7 @@ const en: TranslationSchema = {
       title: `Delete user`,
       message: `Are you sure you want to delete this user?`
     },
+    active_account_exists: `An active account already exists with this email address`,
     unarchivable: `The user can not be unarchived`,
     user_details: `User details`,
     stats: `Users stats`,

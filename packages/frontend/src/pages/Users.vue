@@ -187,12 +187,13 @@
         </q-card-section>
 
         <q-card-section class="q-pt-none">
-          <q-form @submit="">
+          <q-form @submit="createNewUser">
             <q-input
               v-model="newFirstname" 
               lazy-rules filled 
               type="text" 
-              :label="$t('user.firstname')"              
+              :label="$t('user.firstname')"     
+              :rules="nameRules"         
               />
             <q-input 
               v-model="newLastname" 
@@ -200,6 +201,7 @@
               filled 
               :label="$t('user.lastname')" 
               class="q-mt-sm"
+              :rules="nameRules"
               />
             <q-input 
               v-model="newEmail" 
@@ -208,6 +210,7 @@
               type="email"
               :label="$t('user.email')" 
               class="q-mt-sm"
+              :rules="emailRules"
               />
             <q-input 
               v-model="newPassword" 
@@ -215,7 +218,8 @@
               filled 
               type="text" 
               :label="$t('user.password')"
-              class="q-mt-sm" 
+              class="q-mt-sm"
+              :rules="pwdRules"
               />
             
             <q-btn class="q-mt-md" color="primary" :label="$t('users.add_user')" type="submit"  :loading="btnLoading"/>
@@ -247,16 +251,21 @@ const router: Router = useRouter();
 const { t } = useI18n();
 const store = whisperStore();
 
-const addUserDialog: Ref<boolean> = ref(true);
+const addUserDialog: Ref<boolean> = ref(false);
 const btnLoading: Ref<boolean> = ref(false);
 
 const q: QVueGlobals = useQuasar(); 
 
 // new users fields
-const newFirstname: Ref<string> = ref('');
-const newLastname: Ref<string> = ref('');
-const newEmail: Ref<string> = ref('');
-const newPassword: Ref<string> = ref('');
+const newFirstname: Ref<string> = ref('test');
+const newLastname: Ref<string> = ref('test');
+const newEmail: Ref<string> = ref('marcel.grosjean@hepl.ch');
+const newPassword: Ref<string> = ref('123456');
+
+// validation rules for new user
+const emailRules = lib.rules.email(t('validation.email.mandatory'), t('validation.email.maxLength'), t('validation.email.valid'));
+const pwdRules = lib.rules.pwd(t('validation.password.mandatory'), t('validation.password.length'));
+const nameRules = lib.rules.name(t('validation.name.mandatory'), 255) as any;
 
 // Position of the splitter at position % of the component 
 const splitterPosition: Ref<number> = ref(33); 
@@ -271,6 +280,28 @@ const usersFound: Ref<Array<UserWithoutPassword>> = ref([]);
 const userSelected: Ref<UserWithoutPassword> = ref(null);
 
 const stats: Ref<UsersStats> = ref({total: 0, archived: 0, blocked: 0});
+
+async function createNewUser(): Promise<void> {
+  console.log(`new user`);
+  btnLoading.value = true;
+    
+  try {
+    const user = await trpc.users.createUser.mutate({
+      firstname: newFirstname.value,
+      lastname: newLastname.value,
+      email: newEmail.value,
+      pwd: newPassword.value
+    });
+
+    console.log(user);
+  }
+  catch(err){
+    if (err?.data?.httpStatus == 409)
+      q.dialog({ message: t('users.active_account_exists'), color: 'negative' });
+  }
+
+  btnLoading.value = false;
+}
 
 async function updateSettings(args: Record<string, boolean|string>): Promise<void> {
   try {

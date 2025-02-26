@@ -200,6 +200,30 @@ const usersRouter = t.router({
     await DAO.users.updatePassword(opts.input.id, opts.input.pwd);
   }),
 
+  // create a new user
+  createUser: adminProcedure
+  .input(z.object({
+    email: emailZodValidation,
+    firstname: nameZodValidation,
+    lastname: nameZodValidation,
+    pwd: passwordZodValidation
+  }))
+  .mutation(async opts => {
+    await DAO.users.userUnarchivable(opts.input.email);
+    return await DAO.users.createUser({
+      id: lib.uid.genUID(), 
+      firstname: opts.input.firstname,
+      lastname: opts.input.lastname,
+      email: opts.input.email,
+      pwd: opts.input.pwd,
+      salt: null,
+      admin: false,
+      archived: false,
+      blocked: false,
+      created_at: new Date()
+    });
+  }),
+
   // update user password
   updateSettings: adminProcedure
   .input(z.object({
@@ -217,31 +241,7 @@ const usersRouter = t.router({
     if (!Object.keys(opts.input.args).length)
       throw new BadRequestException(`No arguments provided`);
 
-    if (`firstname` in opts.input.args)
-      await DAO.users.update(opts.input.id, { firstname: opts.input.args.firstname });
-
-    if (`lastname` in opts.input.args)
-      await DAO.users.update(opts.input.id, { lastname: opts.input.args.lastname });
-
-    if (`email` in opts.input.args){
-      await DAO.users.userUnarchivable(opts.input.args.email || ""); 
-      await DAO.users.update(opts.input.id, { email: opts.input.args.email });
-    }
-      
-    if (`admin` in opts.input.args)
-      await DAO.users.update(opts.input.id, { admin: opts.input.args.admin });
-
-    if (`blocked` in opts.input.args)
-      await DAO.users.update(opts.input.id, { blocked: opts.input.args.blocked });
-      
-    if (`archived` in opts.input.args){
-      // to unarchive a user, we need to check if the email is already associated with an active user
-      if (!opts.input.args.archived){
-        const user = await DAO.users.findById(opts.input.id);
-        await DAO.users.userUnarchivable(user.email);  
-      } 
-      await DAO.users.update(opts.input.id, { archived: opts.input.args.archived });
-    }
+    await DAO.users.update(opts.input.id, opts.input.args);
   }),
 
   // delete a user

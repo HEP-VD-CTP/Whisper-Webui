@@ -13,28 +13,10 @@ import {
 import { appRouter, type AppRouter } from 'src/trpc/router.ts';
 import { createContext } from 'src/trpc/context.ts';
 
-import DAO from '@whisper-webui/lib/src/db/dao.ts';
-
 const PORT: number = 9000;
 
 const app = Fastify({ logger: false });
  
-// START KYSELY TEST
-import { sql } from 'kysely';
-import { db } from '@whisper-webui/lib/src/db/db2.ts';
-
-/*const x = await db.selectFrom('users')
-                  .where('id', '=', Buffer.from('67AB6A844104D822774D656E', 'hex'))
-                  .selectAll() 
-                  .executeTakeFirst(); 
-               
-console.log(x);*/
-
-await DAO.users.update(`67AB6A844104D822774D656E`, { firstname: `AL`, lastname: `GEH` });
-  
-
-// END KYSELY TEST
-
 
 
 app.register(fastifyCookie);

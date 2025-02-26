@@ -44,6 +44,7 @@ export type TranslationSchema = {
       title: string,
       message: string
     },
+    active_account_exists: string, 
     unarchivable: string,
     user_details: string,
     stats: string, 
