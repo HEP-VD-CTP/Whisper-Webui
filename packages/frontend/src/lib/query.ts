@@ -2,7 +2,7 @@ import { whisperStore } from 'stores/WhisperStore';
 
 const store = whisperStore();
 
-export type GQLQueryResponse = {
+/*export type GQLQueryResponse = {
   headers: Record<string, string>;
   status: number;
   data: any;
@@ -38,8 +38,8 @@ async function gql(query: string, body: Record<string, any> = {}, redirectOn401:
     data: responseBody.data,
     errors: responseBody.errors 
   };
-}
+}*/
 
 export default {
-  gql
+  //gql
 } 

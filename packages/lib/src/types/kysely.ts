@@ -5,7 +5,7 @@ import {
   JSONColumnType,
   Selectable,
   Updateable,
-} from 'kysely';
+} from 'kysely'
 
 export interface Database {
   users: UsersTable
@@ -16,19 +16,18 @@ export interface UsersTable {
   email: string,
   firstname: string, 
   lastname: string, 
-  pwd: string | null,
-  salt: string | null,
+  pwd?: string | null,
+  salt?: string | null,
   admin: boolean,
   archived: boolean,
   blocked: boolean,
   created_at: Date
 }
 
-export type User = Selectable<UsersTable>;
-export type UserWithoutPassword = Omit<User, 'pwd' | 'salt'>;
-export type InsertUser = Insertable<UsersTable>;
-export type UpdateUser = Updateable<UsersTable>;
+export type User = Selectable<UsersTable>
+export type InsertUser = Insertable<UsersTable>
+export type UpdateUser = Updateable<UsersTable>
 
 export default {
 
-};
+}

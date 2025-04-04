@@ -1,6 +1,6 @@
-import { Database } from '@whisper-webui/lib/src/types/kysely.ts';
-import { createPool } from 'mysql2';
-import { Kysely, MysqlDialect } from 'kysely';
+import { Database } from '@whisper-webui/lib/src/types/kysely.ts'
+import { createPool } from 'mysql2'
+import { Kysely, MysqlDialect } from 'kysely'
 
 const dialect = new MysqlDialect({
   pool: createPool({
@@ -17,7 +17,7 @@ const dialect = new MysqlDialect({
     typeCast(field, next) {
       // turn binary id to hex string
       if (field.name == 'id' && field.type === 'STRING'){
-        return field.buffer().toString(`hex`).toUpperCase();
+        return field.buffer().toString(`hex`).toUpperCase()
       }
       // turn tinyint(1) to boolean
       else if (field.type === 'TINY' && field.length === 1) {

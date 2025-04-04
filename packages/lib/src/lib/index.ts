@@ -1,4 +1,4 @@
-import uid from "@whisper-webui/lib/src/lib/uid.ts";
+import uid from "@whisper-webui/lib/src/lib/uid.ts"
 
 export default {
   uid

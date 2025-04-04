@@ -1,6 +1,6 @@
 <template>
     <q-page class="row items-center justify-evenly">
-      <q-card style="min-width: 350px;" flat :class="store.darkMode ? `bg-dark` : `bg-light`">
+      <q-card style="min-width: 350px" flat :class="store.darkMode ? `bg-dark` : `bg-light`">
         <q-card-section class="aligh-center">
           <div class="row justify-center text-h6">{{ $t('login_page.login_page_title') }}</div>
         </q-card-section>
@@ -31,59 +31,59 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useQuasar, QVueGlobals } from 'quasar';
-import { whisperStore } from 'stores/WhisperStore';
-import { useI18n } from 'vue-i18n';
-import { useRouter, Router, RouteLocationNormalized } from 'vue-router';
-import lib  from 'src/lib/index';
-import trpc from 'src/lib/trpc';
+import { ref, onMounted } from 'vue'
+import { useQuasar, QVueGlobals } from 'quasar'
+import { whisperStore } from 'stores/WhisperStore'
+import { useI18n } from 'vue-i18n'
+import { useRouter, Router, RouteLocationNormalized } from 'vue-router'
+import lib  from 'src/lib/index'
+import trpc from 'src/lib/trpc'
 
-const router: Router = useRouter(); 
+const router: Router = useRouter() 
 
 
-const { t } = useI18n();
-const store = whisperStore();
+const { t } = useI18n()
+const store = whisperStore()
 
-const email      = ref(`john.doe@example.com`);
-const password   = ref(`123456`);
-const isPwd      = ref(true);
-const btnLoading = ref(false);
+const email      = ref(`john.doe@example.com`)
+const password   = ref(`123456`)
+const isPwd      = ref(true)
+const btnLoading = ref(false)
 
-const q: QVueGlobals = useQuasar(); 
+const q: QVueGlobals = useQuasar() 
 
 async function test(){
   try{
-    //const x = await trpc.auth.renew.query();
-    const x = await trpc.users.test.query("true");
+    //const x = await trpc.auth.renew.query()
+    const x = await trpc.users.test.query("true")
   }
   catch(err){
-    console.error(err);
+    console.error(err)
   }
 }
 
 async function login(): Promise<void> {
-  btnLoading.value = true;
+  btnLoading.value = true
 
   try {
-    const user = await trpc.auth.login.mutate({email: email.value, pwd: password.value});
-    store.setUser(user);
-    router.push('/');
+    const user = await trpc.auth.login.mutate({email: email.value, pwd: password.value})
+    store.setUser(user)
+    router.push('/')
   }
   catch(err){
     
     q.dialog({
       title: t('misc.error'),
       message: t('login_page.invalid'),
-    });
+    })
   }
 
-  btnLoading.value = false;
+  btnLoading.value = false
 }
 
 onMounted(async () => {
-  document.title = `${t('login_page.login_page_title')} - ${store.getTitle()}`;
-});
+  document.title = `${t('login_page.login_page_title')} - ${store.getTitle()}`
+})
 
 </script>
   

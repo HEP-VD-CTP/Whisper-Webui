@@ -85,4 +85,4 @@ const en: TranslationSchema = {
   success: `success_en`
 }
 
-export default en;
+export default en

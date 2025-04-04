@@ -25,6 +25,7 @@ export default defineBoot(({ app }) => {
   const i18n = createI18n<{ message: MessageSchema }, MessageLanguages>({
     locale: 'en',
     legacy: false,
+    warnHtmlMessage: false, // 👈 disables the HTML warning
     messages,
   });
 

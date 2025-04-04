@@ -1,105 +1,105 @@
-import { initTRPC } from '@trpc/server';
-import { set, z } from 'zod';
-import superjson from 'superjson';
+import { initTRPC } from '@trpc/server'
+import { set, z } from 'zod'
+import superjson from 'superjson'
 
-import DAO from '@whisper-webui/lib/src/db/DAO.ts';
-import store from '@whisper-webui/lib/src/db/store.ts';
-import lib from '@whisper-webui/lib/src/lib/index.ts';
-import { BadRequestException, ForbiddenException, UnauthorizedException } from '@whisper-webui/lib/src/db/exceptions.ts';
+import DAO from '@whisper-webui/lib/src/db/DAO.ts'
+import store from '@whisper-webui/lib/src/db/store.ts'
+import lib from '@whisper-webui/lib/src/lib/index.ts'
+import { BadRequestException, ForbiddenException, UnauthorizedException } from '@whisper-webui/lib/src/db/exceptions.ts'
 
-import { Context } from 'src/trpc/context.ts';
-import { UserWithoutPassword } from '@whisper-webui/lib/src/types/kysely.ts';
+import { Context } from 'src/trpc/context.ts'
+import { User } from '@whisper-webui/lib/src/types/kysely.ts'
 
 const idZodValidation = z.string().refine((val) => {
   // id must be 24 length string
   if (val.length != 24)
-    return false;
+    return false
 
   // id must contain only UPPERCASE hexadecimal characters
   for (let i = 0; i < 24; i++) {
-    const charCode = val.charCodeAt(i);
+    const charCode = val.charCodeAt(i)
     if (!(charCode >= 48 && charCode <= 57) && !(charCode >= 65 && charCode <= 70))
-      return false;
+      return false
   }
 
   // id is valid
-  return true;
+  return true
 }, {
   message: "INVALID ID. Must be 24 characters long and contain only UPPERCASE hexadecimal characters.",
-});
+})
 
-const nameZodValidation = z.string().min(1).max(255);
-const passwordZodValidation = z.string().min(6).max(255);
-const emailZodValidation = z.string().email().max(255);
+const nameZodValidation = z.string().min(1).max(255)
+const passwordZodValidation = z.string().min(6).max(255)
+const emailZodValidation = z.string().email().max(255)
 
 // user session expiration time
-const exp: number = parseInt(process.env.USER_SESSION_EXP_TIME || '86400');
+const exp: number = parseInt(process.env.USER_SESSION_EXP_TIME || '86400')
 
 export const t = initTRPC.context<Context>().create({
   transformer: superjson,
   errorFormatter({ error, shape }) {    
     if (shape.message.startsWith(`InvalidRequestException:`)){
-      shape.data.httpStatus = 400;
-      shape.data.code = 'BAD_REQUEST';
+      shape.data.httpStatus = 400
+      shape.data.code = 'BAD_REQUEST'
     }
     else if (shape.message.startsWith(`UnauthorizedException:`)){
-      shape.data.httpStatus = 401;
-      shape.data.code = 'UNAUTHORIZED';
+      shape.data.httpStatus = 401
+      shape.data.code = 'UNAUTHORIZED'
     }
     else if (shape.message.startsWith(`ForbiddenException:`)){
-      shape.data.httpStatus = 403;
-      shape.data.code = 'FORBIDDEN';
+      shape.data.httpStatus = 403
+      shape.data.code = 'FORBIDDEN'
     }
     else if (shape.message.startsWith(`NotFoundException:`)){
-      shape.data.httpStatus = 404;
-      shape.data.code = 'NOT_FOUND';
+      shape.data.httpStatus = 404
+      shape.data.code = 'NOT_FOUND'
     }
     else if (shape.message.startsWith(`ConflictException:`)){
-      shape.data.httpStatus = 409;
-      shape.data.code = 'CONFLICT';
+      shape.data.httpStatus = 409
+      shape.data.code = 'CONFLICT'
     }
 
-    return shape;
+    return shape
   },
-});
+})
 
 // Authenticate the user session
 export const sessionProcessing = t.middleware(async ({ ctx, next }) => {
   // sessionId provided by the user cookie
   if (!ctx.req.cookies.sessionId)
-    throw new UnauthorizedException(`SessionId not found`);
+    throw new UnauthorizedException(`SessionId not found`)
 
-  const sessionId: string = ctx.req.cookies.sessionId;
+  const sessionId: string = ctx.req.cookies.sessionId
   
   // get the session stored in redis
-  const user = await store.getSession(sessionId);
+  const user = await store.getSession(sessionId)
   if (!user)
-    throw new UnauthorizedException(`Session not found`);
+    throw new UnauthorizedException(`Session not found`)
   
   // extends the session
-  await store.extendSession(sessionId, exp);
+  await store.extendSession(sessionId, exp)
 
   // save the user in the context
-  ctx["user"] = user;
+  ctx["user"] = user
 
-  return next();
-});
+  return next()
+})
 
-export const publicProcedure = t.procedure;
-export const authedProcedure = t.procedure.use(sessionProcessing);
+export const publicProcedure = t.procedure
+export const authedProcedure = t.procedure.use(sessionProcessing)
 export const adminProcedure  = t.procedure.use(sessionProcessing).use(async ({ ctx, next }) => {
   if (!ctx.user || !ctx.user.admin)
-    throw new ForbiddenException(`You can't access this route`);
+    throw new ForbiddenException(`You can't access this route`)
 
-  return next();
-}); 
+  return next()
+}) 
 
 function setSessionCookie(ctx: any, sessionId: string, exp: number){
   ctx.res.setCookie('sessionId', sessionId, {
     httpOnly: true,
     path: '/',
     maxAge: exp
-  });
+  })
 }
 
 function removeSessionCookie(ctx: any){
@@ -107,7 +107,7 @@ function removeSessionCookie(ctx: any){
     httpOnly: true,
     path: '/',
     maxAge: 0
-  });
+  })
 }
 
 //
@@ -121,32 +121,32 @@ const authRouter = t.router({
     pwd: passwordZodValidation,
   }))
   .mutation(async opts => {
-    const user = await DAO.users.login(opts.input.email, opts.input.pwd);
+    const user = await DAO.users.login(opts.input.email, opts.input.pwd)
 
     // create a new session for the user
-    const sessionId = lib.uid.genUID();
-    await store.createSession(sessionId, user, exp);
-    setSessionCookie(opts.ctx, sessionId, exp);
-    return user;
+    const sessionId = lib.uid.genUID()
+    await store.createSession(sessionId, user, exp)
+    setSessionCookie(opts.ctx, sessionId, exp)
+    return user
   }),
 
   // user logout
   logout: publicProcedure
   .query(async opts => {
     if (!opts.ctx.req.cookies.sessionId)
-      throw new BadRequestException(`SessionId not found`);
+      throw new BadRequestException(`SessionId not found`)
 
-    removeSessionCookie(opts.ctx);
-    await store.deleteSession(opts.ctx.req.cookies.sessionId);
+    removeSessionCookie(opts.ctx)
+    await store.deleteSession(opts.ctx.req.cookies.sessionId)
   }),
 
   // user extend session
   renew: authedProcedure
     .query(opts => { 
-      return opts.ctx.user;
+      return opts.ctx.user
     }
   )
-});
+})
 
 //
 // Users router
@@ -156,33 +156,38 @@ const usersRouter = t.router({
   test: adminProcedure
   .input(z.string())
   .query(opts => {
-    console.log(`TEST from server`);
-    console.log(opts.ctx.user);
-    return true;
+    console.log(`TEST from server`)
+    console.log(opts.ctx.user)
+    return true
   }),
 
   // find a user
   find: adminProcedure
   .input(z.string())
   .query(async opts => {
-    const user = await DAO.users.findById(opts.input) as UserWithoutPassword;
-    if (`pwd` in user) delete user.pwd;
-    if (`salt` in user) delete user.salt;
-    return user;
+    const user = await DAO.users.findById(opts.input)
+    delete user['pwd']
+    delete user['salt']
+    return user
   }),
 
   // full-text search a user
   search: adminProcedure
   .input(z.string().min(1).max(255))
   .query(async opts => {
-    const term = opts.input.trim().replace(/\s+/g, ` `);
-    return term == '*' ? await DAO.users.findAll() : await DAO.users.searchUsers(term);
+    const term = opts.input.trim().replace(/\s+/g, ` `)
+    const users = term == '*' ? await DAO.users.findAll() : await DAO.users.searchUsers(term)
+    for (const user of users){
+      delete user['pwd']
+      delete user['salt']
+    }
+    return users
   }),
 
   // get users statistics
   stats: adminProcedure
   .query(async opts => {
-    return await DAO.users.stats();
+    return await DAO.users.stats()
   }),
 
   // update user password
@@ -193,11 +198,11 @@ const usersRouter = t.router({
   }))
   .mutation(async opts => {
     if (!opts.ctx.user)
-      throw new ForbiddenException(`User not authenticated`);
+      throw new ForbiddenException(`User not authenticated`)
     if (opts.input.id != opts.ctx.user.id && !opts.ctx.user.admin)
-      throw new ForbiddenException(`You can't change other users password`);
+      throw new ForbiddenException(`You can't change other users password`)
     
-    await DAO.users.updatePassword(opts.input.id, opts.input.pwd);
+    await DAO.users.updatePassword(opts.input.id, opts.input.pwd)
   }),
 
   // create a new user
@@ -209,7 +214,7 @@ const usersRouter = t.router({
     pwd: passwordZodValidation
   }))
   .mutation(async opts => {
-    await DAO.users.userUnarchivable(opts.input.email);
+    await DAO.users.userUnarchivable(opts.input.email)
     return await DAO.users.createUser({
       id: lib.uid.genUID(), 
       firstname: opts.input.firstname,
@@ -221,7 +226,7 @@ const usersRouter = t.router({
       archived: false,
       blocked: false,
       created_at: new Date()
-    });
+    })
   }),
 
   // update user password
@@ -239,26 +244,26 @@ const usersRouter = t.router({
   }))
   .mutation(async opts => {
     if (!Object.keys(opts.input.args).length)
-      throw new BadRequestException(`No arguments provided`);
+      throw new BadRequestException(`No arguments provided`)
 
-    await DAO.users.update(opts.input.id, opts.input.args);
+    await DAO.users.update(opts.input.id, opts.input.args)
   }),
 
   // delete a user
   deleteUser: adminProcedure
   .input(idZodValidation)
   .mutation(async opts => {
-    await DAO.users.deleteUser(opts.input);
+    await DAO.users.deleteUser(opts.input)
   }),
   
 
 
-});
+})
 
 export const appRouter = t.router({
   auth: authRouter,
   users: usersRouter,
-}); 
+}) 
 
 // export type definition of API
-export type AppRouter = typeof appRouter;
+export type AppRouter = typeof appRouter

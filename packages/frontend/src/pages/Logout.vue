@@ -1,6 +1,6 @@
 <template>
   <q-page class="row items-center justify-evenly">
-    <q-card style="min-width: 350px;" flat :class="store.darkMode ? `bg-dark` : `bg-light`">
+    <q-card style="min-width: 350px" flat :class="store.darkMode ? `bg-dark` : `bg-light`">
       <q-card-section class="aligh-center">
         <div class="row justify-center text-h6">LOGOUT PAGE</div>
       </q-card-section>
@@ -9,22 +9,22 @@
 </template>
 
 <script setup lang="ts">
-import { whisperStore } from 'stores/WhisperStore';
-import { useRouter, Router } from 'vue-router';
-import lib  from 'src/lib/index';
-import trpc from 'src/lib/trpc';
+import { whisperStore } from 'stores/WhisperStore'
+import { useRouter, Router } from 'vue-router'
+import lib  from 'src/lib/index'
+import trpc from 'src/lib/trpc'
 
-const router: Router = useRouter(); 
+const router: Router = useRouter() 
 
-const store = whisperStore();
+const store = whisperStore()
 
-store.setUser(null);
+store.setUser(null)
 
 // terminate session on the server
-trpc.auth.logout.query();
+trpc.auth.logout.query()
 
 
-router.push('/login');
+router.push('/login')
 
 
 </script>

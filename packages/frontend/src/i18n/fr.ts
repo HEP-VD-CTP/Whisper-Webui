@@ -84,4 +84,4 @@ const fr: TranslationSchema = {
   success: `success_fr`
 }
 
-export default fr;
+export default fr

@@ -1,8 +1,8 @@
 
 
 export type UsersStats = {
-  total: number;
-  blocked: number;
-  archived: number;
+  total: number
+  blocked: number
+  archived: number
 }
 

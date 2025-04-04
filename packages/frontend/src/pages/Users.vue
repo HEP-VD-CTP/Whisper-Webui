@@ -181,7 +181,7 @@
     </q-splitter>
 
     <q-dialog v-model="addUserDialog" persistent>
-      <q-card style="min-width: 350px;">
+      <q-card style="min-width: 350px">
         <q-card-section>
           <div class="text-h6">{{ $t('users.add_user') }}</div>
         </q-card-section>
@@ -235,55 +235,54 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeMount, watch } from 'vue';
-import { type Ref } from 'vue';
-import { useQuasar, QVueGlobals } from 'quasar';
-import { whisperStore } from 'stores/WhisperStore';
-import { useI18n } from 'vue-i18n';
-import { useRouter, Router, RouteLocationNormalized } from 'vue-router';
-import lib  from 'src/lib/index';
-import trpc from 'src/lib/trpc';
-import { type UserWithoutPassword } from "@whisper-webui/lib/src/types/kysely.ts";
-import { type UsersStats } from "@whisper-webui/lib/src/types/types.ts";
+import { ref, onMounted, onBeforeMount, watch } from 'vue'
+import { type Ref } from 'vue'
+import { useQuasar, QVueGlobals } from 'quasar'
+import { whisperStore } from 'stores/WhisperStore'
+import { useI18n } from 'vue-i18n'
+import { useRouter, Router, RouteLocationNormalized } from 'vue-router'
+import lib  from 'src/lib/index'
+import trpc from 'src/lib/trpc'
+import { type User } from "@whisper-webui/lib/src/types/kysely.ts"
+import { type UsersStats } from "@whisper-webui/lib/src/types/types.ts"
 
-const router: Router = useRouter(); 
+const router: Router = useRouter() 
 
-const { t } = useI18n();
-const store = whisperStore();
+const { t } = useI18n()
+const store = whisperStore()
 
-const addUserDialog: Ref<boolean> = ref(false);
-const btnLoading: Ref<boolean> = ref(false);
+const addUserDialog: Ref<boolean> = ref(false)
+const btnLoading: Ref<boolean> = ref(false)
 
-const q: QVueGlobals = useQuasar(); 
+const q: QVueGlobals = useQuasar() 
 
 // new users fields
-const newFirstname: Ref<string> = ref('test');
-const newLastname: Ref<string> = ref('test');
-const newEmail: Ref<string> = ref('marcel.grosjean@hepl.ch');
-const newPassword: Ref<string> = ref('123456');
+const newFirstname: Ref<string> = ref('test')
+const newLastname: Ref<string> = ref('test')
+const newEmail: Ref<string> = ref('marcel.grosjean@hepl.ch')
+const newPassword: Ref<string> = ref('123456')
 
 // validation rules for new user
-const emailRules = lib.rules.email(t('validation.email.mandatory'), t('validation.email.maxLength'), t('validation.email.valid'));
-const pwdRules = lib.rules.pwd(t('validation.password.mandatory'), t('validation.password.length'));
-const nameRules = lib.rules.name(t('validation.name.mandatory'), 255) as any;
+const emailRules = lib.rules.email(t('validation.email.mandatory'), t('validation.email.maxLength'), t('validation.email.valid'))
+const pwdRules = lib.rules.pwd(t('validation.password.mandatory'), t('validation.password.length'))
+const nameRules = lib.rules.name(t('validation.name.mandatory'), 255) as any
 
 // Position of the splitter at position % of the component 
-const splitterPosition: Ref<number> = ref(33); 
+const splitterPosition: Ref<number> = ref(33) 
 
 // User search input
-const userSearched: Ref<string> = ref('');
+const userSearched: Ref<string> = ref('')
 
 // Users found by criteria
-const usersFound: Ref<Array<UserWithoutPassword>> = ref([]);
+const usersFound: Ref<Array<User>> = ref([])
 
 // User seleted for display
-const userSelected: Ref<UserWithoutPassword> = ref(null);
+const userSelected: Ref<User> = ref(null)
 
-const stats: Ref<UsersStats> = ref({total: 0, archived: 0, blocked: 0});
+const stats: Ref<UsersStats> = ref({total: 0, archived: 0, blocked: 0})
 
 async function createNewUser(): Promise<void> {
-  console.log(`new user`);
-  btnLoading.value = true;
+  btnLoading.value = true
     
   try {
     const user = await trpc.users.createUser.mutate({
@@ -291,36 +290,36 @@ async function createNewUser(): Promise<void> {
       lastname: newLastname.value,
       email: newEmail.value,
       pwd: newPassword.value
-    });
+    })
 
-    console.log(user);
+    addUserDialog.value = false
   }
   catch(err){
     if (err?.data?.httpStatus == 409)
-      q.dialog({ message: t('users.active_account_exists'), color: 'negative' });
+      q.dialog({ message: t('users.active_account_exists'), color: 'negative' })
   }
 
-  btnLoading.value = false;
+  btnLoading.value = false
 }
 
 async function updateSettings(args: Record<string, boolean|string>): Promise<void> {
   try {
-    await trpc.users.updateSettings.mutate({ id: userSelected.value.id.toString(), args });
+    await trpc.users.updateSettings.mutate({ id: userSelected.value.id.toString(), args })
   }
   catch(err){
     // revert back to the old values
-    const user = await trpc.users.find.query(userSelected.value.id.toString());
-    userSelected.value.firstname = user.firstname;
-    userSelected.value.lastname = user.lastname;
-    userSelected.value.email = user.email;
-    userSelected.value.admin = user.admin;
-    userSelected.value.archived = user.archived;
-    userSelected.value.blocked = user.blocked;
+    const user = await trpc.users.find.query(userSelected.value.id.toString())
+    userSelected.value.firstname = user.firstname
+    userSelected.value.lastname = user.lastname
+    userSelected.value.email = user.email
+    userSelected.value.admin = user.admin
+    userSelected.value.archived = user.archived
+    userSelected.value.blocked = user.blocked
     
     if (err?.data?.httpStatus == 400)
-      q.dialog({ message: t('misc.wrong_input'), color: 'negative' });
+      q.dialog({ message: t('misc.wrong_input'), color: 'negative' })
     else if (err?.data?.httpStatus == 409)
-      q.dialog({ message: t('users.unarchivable'), color: 'negative' });
+      q.dialog({ message: t('users.unarchivable'), color: 'negative' })
   }
 }
 
@@ -341,8 +340,8 @@ async function changePwd(): Promise<void> {
     trpc.users.updatePassword.mutate({
       id: userSelected.value.id.toString(),  
       pwd: data
-    });
-  });
+    })
+  })
 }
 
 async function deleteUser(): Promise<void> {
@@ -360,44 +359,44 @@ async function deleteUser(): Promise<void> {
     },
     persistent: true
   }).onOk(async () => {
-    await trpc.users.deleteUser.mutate(userSelected.value.id.toString());
+    await trpc.users.deleteUser.mutate(userSelected.value.id.toString())
     // find the user and delete it from the list
-    let i = 0;
+    let i = 0
     for (let i = 0; i < usersFound.value.length; i++) {
       if (usersFound.value[i].id == userSelected.value.id) {
-        usersFound.value.splice(i, 1);
-        break;
+        usersFound.value.splice(i, 1)
+        break
       }
     }
-    userSelected.value = null;
-  });
+    userSelected.value = null
+  })
 }
 
 watch(userSearched, async (newVal: string, oldVal: string) => {
-  newVal = newVal.trim().replace(/\s+/g, ` `);
+  newVal = newVal.trim().replace(/\s+/g, ` `)
 
   if (newVal == oldVal)
-    return;
+    return
   
   if (newVal != '*' && newVal.length < 3) 
-    return usersFound.value = [];
+    return usersFound.value = []
 
-  const users = await trpc.users.search.query(newVal);
-  usersFound.value = users;
-});
+  const users = await trpc.users.search.query(newVal)
+  usersFound.value = users
+})
 
 onBeforeMount(async () => {
- stats.value = await trpc.users.stats.query();
-});
+ stats.value = await trpc.users.stats.query()
+})
 
 onMounted(() => {
-  document.title = `${t('users.users')} - ${store.getTitle()}`;
-});
+  document.title = `${t('users.users')} - ${store.getTitle()}`
+})
 
 </script>
   
 <style scoped>
 .full-height {
-  height: 100%;
+  height: 100%
 }
 </style>

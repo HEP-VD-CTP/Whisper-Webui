@@ -1,56 +1,56 @@
 
 export class BadRequestException extends Error {
-    statusCode: number;
-    name: string; 
+    statusCode: number
+    name: string 
   
     constructor(message: any){
-      super(`InvalidRequestException: ${message}`);
-      this.name = `InvalidRequestException`;
-      this.statusCode = 400;
+      super(`InvalidRequestException: ${message}`)
+      this.name = `InvalidRequestException`
+      this.statusCode = 400
     }
   }
   
   export class UnauthorizedException extends Error {
-    statusCode: number;
-    name: string; 
+    statusCode: number
+    name: string 
     
     constructor(message: any){
-        super(`UnauthorizedException: ${message}`);
-        this.name = `UnauthorizedException`;
-        this.statusCode = 401;
+        super(`UnauthorizedException: ${message}`)
+        this.name = `UnauthorizedException`
+        this.statusCode = 401
     }
   
   }
   export class ForbiddenException extends Error {
-    statusCode: number;
-    name: string; 
+    statusCode: number
+    name: string 
     
     constructor(message: any){
-        super(`ForbiddenException: ${message}`);
-        this.name = `ForbiddenException`;
-        this.statusCode = 403;
+        super(`ForbiddenException: ${message}`)
+        this.name = `ForbiddenException`
+        this.statusCode = 403
     }
   }
   
   export class NotFoundException extends Error {
-    statusCode: number;
-    name: string; 
+    statusCode: number
+    name: string 
     
     constructor(message: any){
-        super(`NotFoundException: ${message}`);
-        this.name = `NotFoundException`;
-        this.statusCode = 404;
+        super(`NotFoundException: ${message}`)
+        this.name = `NotFoundException`
+        this.statusCode = 404
     }
   }
   
   export class ConflictException extends Error {
-    statusCode: number;
-    name: string; 
+    statusCode: number
+    name: string 
     
     constructor(message: any){
-        super(`ConflictException: ${message}`);
-        this.name = `ConflictException`;
-        this.statusCode = 409;
+        super(`ConflictException: ${message}`)
+        this.name = `ConflictException`
+        this.statusCode = 409
     }
   }
   

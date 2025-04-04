@@ -1,6 +1,6 @@
 <template>
   <q-page class="row items-center justify-evenly">
-    <q-card style="min-width: 350px;" flat :class="store.darkMode ? `bg-dark` : `bg-light`">
+    <q-card style="min-width: 350px" flat :class="store.darkMode ? `bg-dark` : `bg-light`">
       <q-card-section class="aligh-center">
         <div class="row justify-center text-h6">{{ t('misc.alert') }}</div>
       </q-card-section>
@@ -20,15 +20,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { whisperStore } from 'stores/WhisperStore';
-import { useI18n } from 'vue-i18n';
-import { useRouter, Router } from 'vue-router';
+import { ref, onMounted } from 'vue'
+import { whisperStore } from 'stores/WhisperStore'
+import { useI18n } from 'vue-i18n'
+import { useRouter, Router } from 'vue-router'
 
-const router: Router = useRouter(); 
+const router: Router = useRouter() 
 
-const { t } = useI18n();
-const store = whisperStore();
-store.setUser(null);
+const { t } = useI18n()
+const store = whisperStore()
+store.setUser(null)
 
 </script>
