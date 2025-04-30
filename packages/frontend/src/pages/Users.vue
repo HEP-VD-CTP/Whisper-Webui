@@ -1,5 +1,5 @@
 <template>
-  <q-page style="border:0px solid red" class="full-height">
+  <q-page style="border:0px solid red;width:100%" class="full-height">
     <q-splitter style="height:calc(100vh - 50px)" v-model="splitterPosition" separator-style="width:3px">
 
       <template v-slot:before>
@@ -308,7 +308,7 @@ async function updateSettings(args: Record<string, boolean|string>): Promise<voi
   }
   catch(err){
     // revert back to the old values
-    const user = await trpc.users.find.query(userSelected.value.id.toString())
+    const user = await trpc.users.find.query({id: userSelected.value.id.toString()})
     userSelected.value.firstname = user.firstname
     userSelected.value.lastname = user.lastname
     userSelected.value.email = user.email
@@ -359,7 +359,7 @@ async function deleteUser(): Promise<void> {
     },
     persistent: true
   }).onOk(async () => {
-    await trpc.users.deleteUser.mutate(userSelected.value.id.toString())
+    await trpc.users.deleteUser.mutate({id: userSelected.value.id.toString()})
     // find the user and delete it from the list
     let i = 0
     for (let i = 0; i < usersFound.value.length; i++) {
@@ -381,7 +381,7 @@ watch(userSearched, async (newVal: string, oldVal: string) => {
   if (newVal != '*' && newVal.length < 3) 
     return usersFound.value = []
 
-  const users = await trpc.users.search.query(newVal)
+  const users = await trpc.users.search.query({term: newVal})
   usersFound.value = users
 })
 

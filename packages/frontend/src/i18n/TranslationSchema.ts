@@ -58,6 +58,14 @@ export type TranslationSchema = {
     use_filter: string,
     no_results: string
   },
+  transcription: {
+    transcription: string,
+    add_new_transcription: string,
+    uploader_title: string,
+    transcription_language: string,
+    select_file_descritpion: string,
+    max_file_size: string,  
+  },
   validation: {
     name: {
       mandatory: string,

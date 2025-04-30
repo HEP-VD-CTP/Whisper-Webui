@@ -31,6 +31,17 @@ export const whisperStore = defineStore('whisper', () => {
     env.value = newEnv
   }
 
+  // ################
+  // # organization #
+  // ################
+  const organization: Ref<string> = ref('')
+  function getOrganization(): string {
+    return organization.value
+  }
+  function setOrganization(newOrganization: string): void {
+    organization.value = newOrganization
+  }
+
   // ##########
   // # domain #
   // ##########
@@ -55,6 +66,23 @@ export const whisperStore = defineStore('whisper', () => {
 
   function setTitle(newTitle: string): void {
     title.value = newTitle
+  }
+
+  // ##########
+  // # drawer #
+  // ##########
+  const drawer: Ref<boolean> = ref(true)
+  
+  function getDrawer(): boolean {
+    return drawer.value
+  }
+
+  function setDrawer(newDrawer: boolean): void {
+    drawer.value = newDrawer
+  }
+
+  function toggleDrawer(): void {
+    drawer.value = !drawer.value
   }
 
   // ###########
@@ -94,6 +122,10 @@ export const whisperStore = defineStore('whisper', () => {
     getEnv,
     setEnv,
 
+    organization,
+    getOrganization,
+    setOrganization,
+
     domain,
     getDomain,
     setDomain,
@@ -101,6 +133,11 @@ export const whisperStore = defineStore('whisper', () => {
     title,
     getTitle,
     setTitle,
+
+    drawer,
+    getDrawer,
+    setDrawer,
+    toggleDrawer,
 
     language,
     getLanguage,

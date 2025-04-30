@@ -61,6 +61,7 @@ services:
       target: ${WHISPER_WEBUI_ENV}
     environment:
       - NODE_ENV=${WHISPER_WEBUI_ENV}
+      - ORGANIZATION=${ORGANIZATION}
       - DOMAIN=${DOMAIN}:${NGINX_HTTPS_PORT}
       - TITLE=${FRONTEND_TITLE}
     expose:

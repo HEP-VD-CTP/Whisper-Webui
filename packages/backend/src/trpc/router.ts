@@ -1,7 +1,8 @@
 import { initTRPC } from '@trpc/server'
 import { set, z } from 'zod'
 import superjson from 'superjson'
-
+import { OperationMeta } from 'openapi-trpc'
+import { generateOpenAPIDocumentFromTRPCRouter } from 'openapi-trpc'
 import DAO from '@whisper-webui/lib/src/db/DAO.ts'
 import store from '@whisper-webui/lib/src/db/store.ts'
 import lib from '@whisper-webui/lib/src/lib/index.ts'
@@ -35,7 +36,7 @@ const emailZodValidation = z.string().email().max(255)
 // user session expiration time
 const exp: number = parseInt(process.env.USER_SESSION_EXP_TIME || '86400')
 
-export const t = initTRPC.context<Context>().create({
+export const t = initTRPC.context<Context>().meta<OperationMeta>().create({
   transformer: superjson,
   errorFormatter({ error, shape }) {    
     if (shape.message.startsWith(`InvalidRequestException:`)){
@@ -98,7 +99,10 @@ function setSessionCookie(ctx: any, sessionId: string, exp: number){
   ctx.res.setCookie('sessionId', sessionId, {
     httpOnly: true,
     path: '/',
-    maxAge: exp
+    maxAge: exp,
+    secure: true,
+    sameSite: 'None',
+
   })
 }
 
@@ -153,19 +157,20 @@ const authRouter = t.router({
 // 
 
 const usersRouter = t.router({
-  test: adminProcedure
+  /*test: adminProcedure
   .input(z.string())
   .query(opts => {
     console.log(`TEST from server`)
     console.log(opts.ctx.user)
     return true
-  }),
+  }),*/
 
   // find a user
   find: adminProcedure
-  .input(z.string())
+  //.input(z.string())
+  .input(z.object({ id: z.string() }))
   .query(async opts => {
-    const user = await DAO.users.findById(opts.input)
+    const user = await DAO.users.findById(opts.input.id)
     delete user['pwd']
     delete user['salt']
     return user
@@ -173,9 +178,10 @@ const usersRouter = t.router({
 
   // full-text search a user
   search: adminProcedure
-  .input(z.string().min(1).max(255))
+  //.input(z.string().min(1).max(255))
+  .input(z.object({ term: z.string().min(1).max(255) }))
   .query(async opts => {
-    const term = opts.input.trim().replace(/\s+/g, ` `)
+    const term = opts.input.term.trim().replace(/\s+/g, ` `)
     const users = term == '*' ? await DAO.users.findAll() : await DAO.users.searchUsers(term)
     for (const user of users){
       delete user['pwd']
@@ -251,9 +257,11 @@ const usersRouter = t.router({
 
   // delete a user
   deleteUser: adminProcedure
-  .input(idZodValidation)
+  .input(z.object({
+    id: idZodValidation,
+  }))
   .mutation(async opts => {
-    await DAO.users.deleteUser(opts.input)
+    await DAO.users.deleteUser(opts.input.id)
   }),
   
 
@@ -264,6 +272,10 @@ export const appRouter = t.router({
   auth: authRouter,
   users: usersRouter,
 }) 
+
+export const openAPIDocument = generateOpenAPIDocumentFromTRPCRouter(appRouter, {
+  pathPrefix: '/trpc',
+})
 
 // export type definition of API
 export type AppRouter = typeof appRouter

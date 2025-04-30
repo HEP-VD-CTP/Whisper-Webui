@@ -1,16 +1,9 @@
 <template>
   <q-no-ssr>
-    <q-layout view="lHh Lpr lFf" >
+    <q-layout view="hHh Lpr lff" >
       <q-header :reveal="false" :class="store.darkMode ? 'text-white bg-dark-page' : 'text-black bg-white'">
         <q-toolbar>
-          <q-btn
-            flat
-            dense
-            round
-            icon="menu"
-            aria-label="Menu"
-            @click="toggleLeftDrawer"
-          />
+          <q-btn flat dense round icon="menu" aria-label="Menu" @click="store.toggleDrawer()"/>
 
           <q-toolbar-title>
             {{ store.getTitle() }}
@@ -55,16 +48,8 @@
         </q-toolbar>
       
       </q-header>
-      
-      <q-drawer v-if="false"
-        v-model="drawer"
-        show-if-above
-        bordered
-      >
 
-      </q-drawer>
-
-      <q-page-container>
+      <q-page-container class="row justify-center" v-if="loaded">
         <router-view />
       </q-page-container>
 
@@ -125,37 +110,40 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onServerPrefetch, onMounted, onBeforeMount } from 'vue';
-import type { Ref} from 'vue';
-import { useQuasar, QVueGlobals } from 'quasar';
-import { whisperStore } from 'stores/WhisperStore';
-import { useI18n } from 'vue-i18n';
+import { ref, onServerPrefetch, onMounted, onBeforeMount } from 'vue'
+import type { Ref} from 'vue'
+import { useQuasar, QVueGlobals } from 'quasar'
+import { whisperStore } from 'stores/WhisperStore'
+import { useI18n } from 'vue-i18n'
 import { User } from "@whisper-webui/lib/src/types/kysely.ts"
-import lib  from 'src/lib/index';
-import { useRouter, Router } from 'vue-router';
-import trpc from 'src/lib/trpc';
+import lib  from 'src/lib/index'
+import { useRouter, Router } from 'vue-router'
+import trpc from 'src/lib/trpc'
 
 
-const { t, locale } = useI18n();
-const store = whisperStore();
-const q: QVueGlobals = useQuasar(); 
-const drawer = ref(false);
-const settingsSelector: Ref<boolean> = ref(false);
+const { t, locale } = useI18n()
+const store = whisperStore()
+const q: QVueGlobals = useQuasar()
+const settingsSelector: Ref<boolean> = ref(false)
 
-const router: Router = useRouter(); 
+const router: Router = useRouter()
+
+const loaded: Ref<boolean> = ref(false)
 
 // this will be only executed on the server side
 onServerPrefetch(async () => {
   // set the title of the page from the environment variable
-  store.setEnv(process.env.NODE_ENV);
-  store.setTitle(process.env.TITLE);
-  store.setDomain(process.env.DOMAIN);
+  store.setEnv(process.env.NODE_ENV)
+  store.setTitle(process.env.TITLE)
+  store.setDomain(process.env.DOMAIN)
+  store.setOrganization(process.env.ORGANIZATION)
+
 
   // check the user session
-  const sessionId = q.cookies.get('sessionId');
+  const sessionId = q.cookies.get('sessionId')
 
   if (!sessionId)  // if there is no current session provided
-    return console.log(`NO SESSION ID`);
+    return console.log(`NO SESSION ID`)
 
   // try to get the user session infos
   try {
@@ -168,17 +156,17 @@ onServerPrefetch(async () => {
         'Content-Type': 'application/json',
         'Cookie': `sessionId=${sessionId}`
       },
-    });
+    })
 
     if (!response.ok) 
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}`)
 
     // store the user data
-    const user = (await response.json()).result.data.json as User;
-    store.setUser(user);
+    const user = (await response.json()).result.data.json as User
+    store.setUser(user)
   }
   catch(err){
-    console.error(`Query user session failed: `, err);
+    console.error(`Query user session failed: `, err)
   }
 });
 
@@ -204,49 +192,43 @@ async function changePwd(): Promise<void> {
 }
 
 function setDarkMode(mode: boolean): void{
-  store.setDarkMode(mode);
-  q.dark.set(mode);
+  store.setDarkMode(mode)
+  q.dark.set(mode)
 }
 
 function setLanguage(lang: string): void{
-  locale.value = lang;
-  store.setLanguage(lang);
+  locale.value = lang
+  store.setLanguage(lang)
 }
 
 onBeforeMount(async () => { 
   if (store.user == null && router.currentRoute.value.path != '/expired')
-    router.push('/login');
+    router.push('/login')
 
   // if the language is null, we try to detect the user language
   if (!store.getLanguage()) {
-    const languages = navigator.languages || [navigator.language];
-    const preferredLanguage = languages.find(lang => lang.startsWith('en') || lang.startsWith('fr')) || 'en';
-    setLanguage(preferredLanguage.startsWith('fr') ? 'fr' : 'en');
+    const languages = navigator.languages || [navigator.language]
+    const preferredLanguage = languages.find(lang => lang.startsWith('en') || lang.startsWith('fr')) || 'en'
+    setLanguage(preferredLanguage.startsWith('fr') ? 'fr' : 'en')
   }
   else 
-    setLanguage(store.getLanguage());
+    setLanguage(store.getLanguage())
   
   // display color mode selector
   if (store.getDarkMode() == null){
-    settingsSelector.value = true;
-    store.setDarkMode(false);
+    settingsSelector.value = true
+    store.setDarkMode(false)
   }
   else 
-    store.setDarkMode(store.getDarkMode());
+    store.setDarkMode(store.getDarkMode())
 
 
 });
 
 onMounted(() => {
-  q.dark.set(store.getDarkMode());
-
-  console.log(store.user);
+  q.dark.set(store.getDarkMode())
+  loaded.value = true
 });
  
 
-
-
-function toggleLeftDrawer () {
-  drawer.value = !drawer.value;
-}
 </script>

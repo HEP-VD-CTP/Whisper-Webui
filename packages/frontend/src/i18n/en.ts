@@ -64,6 +64,14 @@ const en: TranslationSchema = {
     use_filter: `Please use the filter`,
     no_results: `No results`,
   },
+  transcription: {
+    transcription: `Transcription`,
+    add_new_transcription: `Add new transcription`,
+    uploader_title: `Upload an audio/video file`,
+    transcription_language: `Transcription language`,
+    select_file_descritpion: `Select one or more media files or drag and drop in the space below:`,
+    max_file_size: `The maximum file size is <b>4GB</b>`,
+  },
   validation: {  
     name: {
       mandatory: `The name is mandatory`,

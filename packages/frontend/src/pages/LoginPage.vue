@@ -22,7 +22,6 @@
         
             <div class="q-mt-lg text-center">
               <q-btn color="primary" :label="t('login_page.login_button')" type="submit" icon-right="login" :loading="btnLoading"/>
-              <q-btn color="primary" @click="test" label="test" icon-right="login"/>
             </div>  
           </q-form>
         </q-card-section>
@@ -51,16 +50,6 @@ const isPwd      = ref(true)
 const btnLoading = ref(false)
 
 const q: QVueGlobals = useQuasar() 
-
-async function test(){
-  try{
-    //const x = await trpc.auth.renew.query()
-    const x = await trpc.users.test.query("true")
-  }
-  catch(err){
-    console.error(err)
-  }
-}
 
 async function login(): Promise<void> {
   btnLoading.value = true
