@@ -64,7 +64,10 @@ export type TranslationSchema = {
     uploader_title: string,
     transcription_language: string,
     select_file_descritpion: string,
-    max_file_size: string,  
+    max_file_size: string,
+    upload_success: string,
+    upload_failed: string,
+    upload_rejected: string,
   },
   validation: {
     name: {

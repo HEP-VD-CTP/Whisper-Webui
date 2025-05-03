@@ -1,6 +1,6 @@
 <template>
   <div class="row justify-center items-center" style="height: 100%;">
-    <div class="text-center">
+    <div :class="`q-pa-sm text-center ${store.darkMode ? 'bg-dark' : 'bg-light'}`">
       <div v-if="store.language == 'fr'">
         Bienvenue sur <b>Whisper</b>, l'application de transcription de {{ store.getOrganization() }}. <br/><br/>
   

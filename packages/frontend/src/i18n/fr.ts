@@ -71,6 +71,9 @@ const fr: TranslationSchema = {
     transcription_language: `Langue de la transcription`,
     select_file_descritpion: `Sélectionnez un ou plusieurs fichiers multimédia ou faites un drag and drop dans l'espace ci-dessous:`,
     max_file_size: `La taille maximale du fichier est de <b>4Go</b>`,
+    upload_success: `Votre fichier a été envoyé avec succès ! Vous recevrez un mail lorsque la transcription sera terminée.`,
+    upload_failed: `Une erreur s'est produite lors de l'envoi du fichier. Si l'erreur persiste, veuillez contacter l'administrateur.`,
+    upload_rejected: `Votre fichier a été rejeté.`,
   },
   validation: {
     name: {

@@ -1,5 +1,5 @@
 <template>
-  <q-drawer v-model="store.drawer">
+  <q-drawer elevated v-model="store.drawer" :class="store.darkMode ? `bg-dark` : `bg-light`">
     <q-scroll-area class="fit">
       <q-list>
         <q-item @click="openUploadModal()" clickable v-ripple>
@@ -14,9 +14,9 @@
   </q-drawer>
 
   <q-dialog v-model="uploaderModal" persistent>
-    <q-card style="max-width:350px">
+    <q-card style="max-width:350px" :class="store.darkMode ? `bg-dark` : `bg-light`">
       <q-card-section>
-          <div class="text-h6">{{ t('transcription.uploader_title') }}</div>
+        <div class="text-h6">{{ t('transcription.uploader_title') }}</div>
       </q-card-section>
 
       
@@ -38,7 +38,7 @@
           @failed="onFailed"
           @removed="" />
 
-        <p class="q-mt-xs" v-html="t('transcription.max_file_size')"></p>        
+        <p class="q-mt-md" v-html="t('transcription.max_file_size')"></p>        
       </q-card-section>
 
       <q-card-actions align="right">
@@ -60,26 +60,35 @@ import { type Ref } from 'vue'
 import { whisperStore } from 'stores/WhisperStore'
 import { useI18n } from 'vue-i18n'
 import WhisperLanding from 'src/components/WhisperLanding.vue'
+import { useQuasar, QVueGlobals } from 'quasar'
 
+
+const q: QVueGlobals = useQuasar()
 const { t } = useI18n()
 const store = whisperStore()
 
 const uploaderModal: Ref<boolean> = ref(false)
 const langOptions: Array<Record<string, string>> = [
-  {label: 'English', value: 'en'}, {label: 'Français', value: 'fr'}, {label: 'Deutsch', value: 'de'},
-  {label: 'Español', value: 'es'}, {label: 'Italiano', value: 'it'}, {label: 'Japanese', value: 'ja'},
-  {label: 'Chinese', value: 'zh'}, {label: 'Nederlands', value: 'nl'}, {label: 'Ukrainian', value: 'uk'},
-  {label: 'Português', value: 'pt'}, {label: 'Arabic', value: 'ar'}, {label: 'Čeština', value: 'cs'},
-  {label: 'Russian', value: 'ru'}, {label: 'Polski', value: 'pl'}, {label: 'Magyar', value: 'hu'},
-  {label: 'Suomi', value: 'fi'}, {label: 'Farsi', value: 'fa'}, {label: 'Ellinika', value: 'el'},
-  {label: 'Türkçe', value: 'tr'}, {label: 'Dansk', value: 'da'}, {label: 'Hebrew', value: 'he'},
-  {label: 'Tieng Viet', value: 'vi'}, {label: 'Korean', value: 'ko'}, {label: 'Urdu', value: 'ur'},
-  {label: 'Telugu', value: 'te'}, {label: 'Hindi', value: 'hi'}, {label: 'Català', value: 'ca'},
-  {label: 'Malayalam', value: 'ml'}, {label: 'Norsk Bokmål', value: 'no'}, {label: 'Norsk Nynorsk', value: 'nn'},
-  {label: 'Slovenčina', value: 'sk'}, {label: 'Slovenščina', value: 'sl'}, {label: 'Hrvatski', value: 'hr'},
-  {label: 'Română', value: 'ro'}, {label: 'Euskara', value: 'eu'}, {label: 'Galego', value: 'gl'},
-  {label: 'Kartuli', value: 'ka'}, {label: 'Latviešu', value: 'lv'}, {label: 'Tagalog', value: 'tl'}
+  {label: 'Arabic', value: 'ar'},
+  {label: 'Chinese', value: 'zh'},
+  {label: 'Deutsch', value: 'de'},
+  {label: 'Ellinika', value: 'el'},
+  {label: 'English', value: 'en'},
+  {label: 'Español', value: 'es'},
+  {label: 'Farsi', value: 'fa'},
+  {label: 'Français', value: 'fr'},
+  {label: 'Italiano', value: 'it'},
+  {label: 'Japanese', value: 'ja'},
+  {label: 'Magyar', value: 'hu'},
+  {label: 'Nederlands', value: 'nl'},
+  {label: 'Polski', value: 'pl'},
+  {label: 'Português', value: 'pt'},
+  {label: 'Russian', value: 'ru'},
+  {label: 'Suomi', value: 'fi'},
+  {label: 'Türkçe', value: 'tr'},
+  {label: 'Ukrainian', value: 'uk'}
 ]
+
 const lang: Ref<Record<string, string>> = ref(langOptions.values[0])
 
 function openUploadModal() {
@@ -89,17 +98,20 @@ function openUploadModal() {
 
 function onUploaded(data){
   console.log(`UPLOAD SUCCESS`);
-  console.log(data)
+  q.notify({ color: 'positive', message: t('transcription.upload_success'), position: 'top', group: false })
 }
 
 function onRejected(data){
   console.error(`UPLOAD REJECTED`);
   console.error(data)
+  q.notify({ color: 'negative', message: t('transcription.upload_rejected'), position: 'top', group: false })
+
 }
 
 function onFailed(data){
   console.error(`UPLOAD FAILED`);
   console.error(data)
+  q.notify({ color: 'negative', message: t('transcription.upload_failed'), position: 'top', group: false })
 }
   
 onMounted(() => {

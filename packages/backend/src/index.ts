@@ -23,10 +23,11 @@ import { createContext } from 'src/trpc/context.ts'
 import store from '@whisper-webui/lib/src/db/store.ts'
 import { 
   UnauthorizedException, 
-  BadRequestException 
+  BadRequestException,
+  ForbiddenException
 } from '@whisper-webui/lib/src/db/exceptions.ts'
 import lib from '@whisper-webui/lib/src/lib/index.ts'
-
+import DAO from '@whisper-webui/lib/src/db/DAO.ts'
 
 
 const PORT: number = 9000
@@ -73,7 +74,6 @@ app.register(fastifySwaggerUi, {
 app.addHook('preHandler', async (request, reply) => {})
 app.addHook('onResponse', async (request, reply) => {})
 
-
 // Handle whisper video upload
 app.route({
   method:`POST`,
@@ -82,37 +82,33 @@ app.route({
     querystring: {
       type: 'object',
       properties: {
-        lang: { type: 'string', enum: [
-            "ar", "ca", "cs", "da", "de", "el", "en", "es", "eu",
-            "fa", "fi", "fr", "gl", "he", "hi", "hr", "hu", "it",
-            "ja", "ka", "ko", "lv", "ml", "nl", "nn", "no", "pl",
-            "pt", "ro", "ru", "sk", "sl", "te", "tl", "tr", "uk",
-            "ur", "vi", "zh"
-          ] 
-        }, 
+        lang: { 
+          type: 'string', 
+          enum: ['ar', 'zh', 'de', 'el', 'en', 'es', 'fa', 'fr', 'it', 'ja', 'hu', 'nl', 'pl', 'pt', 'ru', 'fi', 'tr', 'uk'] 
+        } 
       },
-      required: ['lang'], // Make `lang` a required parameter
+      required: ['lang'],
     },
   },
-  handler: async (req, res) => {
+  handler: async (req: FastifyRequest<{ Querystring: { lang: string} }>, res) => {
     // first check if the user is logged in
     const [_, sessionId] = req.headers.cookie?.split(`=`) || []
     if (!sessionId) 
-      throw new UnauthorizedException(`No sessionId provided`)
+      throw new ForbiddenException(`No sessionId provided`)
     
     if (sessionId.length != 24)
-      throw new UnauthorizedException(`Invalid sessionId provided`)
+      throw new ForbiddenException(`Invalid sessionId provided`)
 
     for (let i = 0; i < 24; i++) {
       const charCode = sessionId.charCodeAt(i)
       if (!(charCode >= 48 && charCode <= 57) && !(charCode >= 65 && charCode <= 70))
-        throw new UnauthorizedException(`Invalid sessionId provided`)
+        throw new ForbiddenException(`Invalid sessionId provided`)
     }
 
     // get the user
     const user = await store.getSession(sessionId)
     if (!user)
-      throw new UnauthorizedException(`Session not found`)
+      throw new ForbiddenException(`Session not found`)
 
     // get the file informations
     const data = await req.file({limits: {
@@ -131,7 +127,9 @@ app.route({
     // get file informations
     const name = data.filename.trim()
     // sanitize the filename
-    const filename = data.filename.trim().slice(-255)
+    const filename = data.filename
+      .trim()
+      .slice(-255)
       .normalize('NFKD')
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/[\/?<>\\:*|"]/g, `-`)
@@ -142,10 +140,6 @@ app.route({
       .replace(/-{2,}/g, `-`)
       .replace(/^-+|-+$/g, '')
 
-
-
-    const uid = lib.uid.genUID()
-
     console.log(
       `\n=== New transcription file incoming ===\n` +
       `UserId: ${user.id}\n` +
@@ -155,6 +149,19 @@ app.route({
       `Mimetype: ${mimetype}\n` +
       `FilePath: `);
 
+    // save to db
+    const uid = lib.uid.genUID()
+    await DAO.transcriptions.createTranscription({
+      id: uid,
+      name: filename,
+      file: filename,
+      lang: req.query.lang,
+      status: `waiting`,
+      created: new Date(),
+      deleted: 0
+    })
+    
+    res.code(200).send(await DAO.transcriptions.findById(uid))
 
     /*
     const data = await req.file({limits: {

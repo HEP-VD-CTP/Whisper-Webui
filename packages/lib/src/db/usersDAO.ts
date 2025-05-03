@@ -1,4 +1,9 @@
-import { BadRequestException, NotFoundException, ForbiddenException, ConflictException } from '@whisper-webui/lib/src/db/exceptions.ts'
+import { 
+  BadRequestException, 
+  NotFoundException, 
+  ForbiddenException, 
+  ConflictException 
+} from '@whisper-webui/lib/src/db/exceptions.ts'
 import { db } from '@whisper-webui/lib/src/db/db2.ts'
 import { 
   type User, 

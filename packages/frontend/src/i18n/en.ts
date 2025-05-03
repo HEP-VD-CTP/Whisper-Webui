@@ -71,6 +71,9 @@ const en: TranslationSchema = {
     transcription_language: `Transcription language`,
     select_file_descritpion: `Select one or more media files or drag and drop in the space below:`,
     max_file_size: `The maximum file size is <b>4GB</b>`,
+    upload_success: `Your file has been successfully uploaded! You will receive an email when the transcription is finished.`,
+    upload_failed: `Your file upload has failed. Please try again later. and contact support if the problem persists.`,
+    upload_rejected: `The file is not supported.`,
   },
   validation: {  
     name: {

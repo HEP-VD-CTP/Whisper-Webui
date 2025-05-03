@@ -141,7 +141,6 @@ onServerPrefetch(async () => {
 
   // check the user session
   const sessionId = q.cookies.get('sessionId')
-
   if (!sessionId)  // if there is no current session provided
     return console.log(`NO SESSION ID`)
 
