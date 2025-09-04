@@ -65,7 +65,14 @@ const fr: TranslationSchema = {
     no_results: `Aucun résultat`,
   },
   transcription: {
+    status: {
+      waiting: `En attente`,
+      processing: `En traitement`,
+      done: `Terminé`,
+      error: `Erreur`
+    },
     transcription: `Transcription`,
+    transcriptions: `Transcriptions`,
     add_new_transcription: `Ajouter une nouvelle transcription`,
     uploader_title: `Uploader un fichier audio/vidéo`,
     transcription_language: `Langue de la transcription`,

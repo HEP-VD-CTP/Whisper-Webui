@@ -1,11 +1,28 @@
 <template>
-  <q-drawer elevated v-model="store.drawer" :class="store.darkMode ? `bg-dark` : `bg-light`">
+  <q-drawer v-model="store.drawer" :class="store.darkMode ? `bg-dark` : `bg-light`">
     <q-scroll-area class="fit">
       <q-list>
         <q-item @click="openUploadModal()" clickable v-ripple>
           <q-item-section>
             <q-item-label>
               <q-icon name="add" /> {{ t('transcription.add_new_transcription') }}
+            </q-item-label>
+          </q-item-section>
+        </q-item>
+      </q-list>
+
+      <q-list>
+        <q-item-label header>{{ t('transcription.transcriptions') }} ({{ transcriptions.length }})</q-item-label>
+        <q-item v-for="(trs, index) of transcriptions" clickable @click="selectedTranscriptionId = trs.id as string" :active="selectedTranscriptionId == trs.id">
+          <q-item-section>
+            <q-item-label lines="1">{{ trs.name }}</q-item-label>
+            <q-item-label caption lines="1">
+              <q-chip v-if="trs.status == `done`" size="xs" icon="check" color="green">{{ t('transcription.status.done') }}</q-chip>
+              <q-chip v-else-if="trs.status == `processing`" size="xs" icon="mdi-waveform" color="orange">{{ t('transcription.status.processing') }}</q-chip>
+              <q-chip v-else-if="trs.status == `waiting`" size="xs" icon="event" color="primary">{{ t('transcription.status.waiting') }}</q-chip>
+              <q-chip v-else-if="trs.status == `error`" size="xs" icon="close" color="red">{{ t('transcription.status.error') }}</q-chip>
+              
+             <span>{{ date.formatDate(trs.created, 'DD.MM.YYYY HH:mm:ss') }}</span>
             </q-item-label>
           </q-item-section>
         </q-item>
@@ -49,7 +66,7 @@
 
   <q-page class="q-pa-xs" :style="`${$q.screen.width >= 900 ? `width:900px` : `width:${$q.screen.width}px`};border:1px solid red`">
     
-    <WhisperLanding />
+    <WhisperLanding v-if="selectedTranscriptionId == null" />
 
   </q-page>
 </template>
@@ -61,11 +78,18 @@ import { whisperStore } from 'stores/WhisperStore'
 import { useI18n } from 'vue-i18n'
 import WhisperLanding from 'src/components/WhisperLanding.vue'
 import { useQuasar, QVueGlobals } from 'quasar'
+import { Transcription } from '@whisper-webui/lib/src/types/kysely.ts'
+import trpc from 'src/lib/trpc'
+import date from 'src/lib/date'
 
 
 const q: QVueGlobals = useQuasar()
 const { t } = useI18n()
 const store = whisperStore()
+
+const transcriptions: Ref<Array<Partial<Transcription>>> = ref([])
+
+const selectedTranscriptionId: Ref<string|null> = ref(null)
 
 const uploaderModal: Ref<boolean> = ref(false)
 const langOptions: Array<Record<string, string>> = [
@@ -97,6 +121,9 @@ function openUploadModal() {
 }
 
 function onUploaded(data){
+  const transcription: Transcription = JSON.parse(data.xhr.response)
+  transcription.created = new Date(transcription.created)
+  transcriptions.value.unshift(transcription)
   console.log(`UPLOAD SUCCESS`);
   q.notify({ color: 'positive', message: t('transcription.upload_success'), position: 'top', group: false })
 }
@@ -114,7 +141,7 @@ function onFailed(data){
   q.notify({ color: 'negative', message: t('transcription.upload_failed'), position: 'top', group: false })
 }
   
-onMounted(() => {
+onMounted(async () => {
   // set the language to the default language
   langOptions.find((item) => {
     if (item.value == store.getLanguage())
@@ -122,5 +149,7 @@ onMounted(() => {
   })
 
   document.title = `${t('transcription.transcription')} - ${store.getTitle()}`
+
+  transcriptions.value = await trpc.transcriptions.findByUserId.query({userId: store.getUser().id as string})
 })
 </script>

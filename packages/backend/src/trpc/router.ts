@@ -152,10 +152,9 @@ const authRouter = t.router({
   )
 })
 
-//
-// Users router
-// 
-
+// ################
+// # Users router #
+// ################
 const usersRouter = t.router({
   /*test: adminProcedure
   .input(z.string())
@@ -263,7 +262,32 @@ const usersRouter = t.router({
   .mutation(async opts => {
     await DAO.users.deleteUser(opts.input.id)
   }),
-  
+
+})
+
+// #########################
+// # Transcriptions router #
+// #########################
+const transcriptionRouter = t.router({
+
+  // find transcriptions by userId
+  findByUserId: authedProcedure
+  .input(z.object({ 
+    userId: z.string() 
+  }))
+  .query(async opts => {
+    if (opts.input.userId != opts.ctx.user?.id && !opts.ctx.user?.admin)
+      throw new ForbiddenException(`You are not allowed to access this resource`)
+
+    const transcriptions = await DAO.transcriptions.findByUserId(opts.input.userId)
+
+    console.log(transcriptions)
+
+    // remove removed transcriptions for non admin
+    return opts.ctx.user?.admin ? 
+      transcriptions : 
+      transcriptions.filter(transcription => !transcription.deleted)
+  }),
 
 
 })
@@ -271,6 +295,7 @@ const usersRouter = t.router({
 export const appRouter = t.router({
   auth: authRouter,
   users: usersRouter,
+  transcriptions: transcriptionRouter
 }) 
 
 export const openAPIDocument = generateOpenAPIDocumentFromTRPCRouter(appRouter, {

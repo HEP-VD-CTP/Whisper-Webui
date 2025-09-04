@@ -1,6 +1,9 @@
-import uid from "@whisper-webui/lib/src/lib/uid.ts"
+import uid from "./uid.ts"
+import time from './time.ts'
+
+
 
 export default {
-  uid
-
+  uid,
+  time
 }

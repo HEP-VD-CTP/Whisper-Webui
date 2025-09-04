@@ -89,9 +89,10 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
     expose: 
-      - 9000
+      - 9000 
     volumes:
       - ${WHISPER_WEBUI_VOLUME_PATH}/logs:/data/logs
+      - ${WHISPER_WEBUI_VOLUME_PATH}/transcriptions:/data/transcriptions
       - ./packages/backend:/app_dev/packages/backend
       - ./packages/lib:/app_dev/packages/lib
     networks:

@@ -1,11 +1,14 @@
 import Fastify  from 'fastify'
 import fastifyCookie from '@fastify/cookie'
-import fastifySwagger from '@fastify/swagger';
-import fastifySwaggerUi from '@fastify/swagger-ui';
-import urlData from '@fastify/url-data';
-import multipart from '@fastify/multipart';
-import { FastifyRequest } from 'fastify';
-import fastifyCors from '@fastify/cors';
+import fastifySwagger from '@fastify/swagger'
+import fastifySwaggerUi from '@fastify/swagger-ui'
+import urlData from '@fastify/url-data'
+import multipart from '@fastify/multipart'
+import { FastifyRequest } from 'fastify'
+import fastifyCors from '@fastify/cors'
+import path from 'node:path'
+import { pipeline } from 'stream/promises'
+import fs from 'node:fs'
 
 import {
   fastifyTRPCPlugin,
@@ -91,11 +94,19 @@ app.route({
     },
   },
   handler: async (req: FastifyRequest<{ Querystring: { lang: string} }>, res) => {
-    // first check if the user is logged in
-    const [_, sessionId] = req.headers.cookie?.split(`=`) || []
+    const cookies = Object.fromEntries(
+      (req.headers.cookie || '')
+        .split('; ')
+        .map(cookie => {
+          const [name, ...rest] = cookie.split('=')
+          return [name, rest.join('=')]
+        })
+    )
+    const sessionId = cookies.sessionId
+
     if (!sessionId) 
       throw new ForbiddenException(`No sessionId provided`)
-    
+
     if (sessionId.length != 24)
       throw new ForbiddenException(`Invalid sessionId provided`)
 
@@ -127,7 +138,7 @@ app.route({
     // get file informations
     const name = data.filename.trim()
     // sanitize the filename
-    const filename = data.filename
+    const filename = name
       .trim()
       .slice(-255)
       .normalize('NFKD')
@@ -148,59 +159,28 @@ app.route({
       `Filename: ${filename}\n` +
       `Mimetype: ${mimetype}\n` +
       `FilePath: `);
+    
+    // transcription id
+    const uid = lib.uid.genUID()
+
+    // save file to disk
+    const folderPath = path.join('/data/transcriptions/in', uid)
+    const filePath = path.join(folderPath, filename)
+    await fs.promises.mkdir(folderPath, { recursive: true })
+    await pipeline(data.file, fs.createWriteStream(filePath))
 
     // save to db
-    const uid = lib.uid.genUID()
     await DAO.transcriptions.createTranscription({
       id: uid,
-      name: filename,
+      name: name,
       file: filename,
       lang: req.query.lang,
       status: `waiting`,
       created: new Date(),
       deleted: 0
-    })
-    
+    }, user.id)
+
     res.code(200).send(await DAO.transcriptions.findById(uid))
-
-    /*
-    const data = await req.file({limits: {
-      files: 1,
-      fileSize: config.whisper.maxFileSize
-    }});
-
-    const name: string     = data.filename.trim();
-    const filename: string = utils.str.sanitizeFileName(data.filename);
-    const mimetype: string = data.mimetype;
-
-    const fileUID: string    = utils.uid();
-    const folderPath: string = path.join(config.whisper.in, fileUID);
-    const filePath: string   = path.join(folderPath, filename);
-    
-    console.log(
-    `\n=== New transcription file incoming ===\n` +
-    `UserId: ${req.user.id}\n` +
-    `Email: ${req.user.email}\n` +
-    `Name: ${name}\n` +
-    `Filename: ${filename}\n` +
-    `Mimetype: ${mimetype}\n` +
-    `FilePath: ${filePath}`);
-
-    // we only accept audio and video files
-    if (!mimetype.includes(`video`) && !mimetype.includes(`audio`))
-      throw new InvalidRequestException(`The file is not audio/video`);
-    
-    // save the uploaded file into the destination folder
-    await fs.promises.mkdir(folderPath);
-    await pump(data.file, fs.createWriteStream(filePath));
-
-    // send back the transcription
-    res.code(200).send({
-      uid: fileUID,
-      filename: data.filename // original filename 
-    });
-    */
-
   }
 })
 

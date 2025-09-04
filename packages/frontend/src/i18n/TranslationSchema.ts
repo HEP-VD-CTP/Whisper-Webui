@@ -60,6 +60,7 @@ export type TranslationSchema = {
   },
   transcription: {
     transcription: string,
+    transcriptions: string, 
     add_new_transcription: string,
     uploader_title: string,
     transcription_language: string,
@@ -68,6 +69,12 @@ export type TranslationSchema = {
     upload_success: string,
     upload_failed: string,
     upload_rejected: string,
+    status: {
+      waiting: string, 
+      processing: string, 
+      done: string,
+      error: string
+    }
   },
   validation: {
     name: {

@@ -10,10 +10,11 @@ import {
 export interface Database {
   users: UsersTable
   transcriptions: TranscriptionsTable
+  transcriptions_users: TranscriptionUsersTable
 }
 
 export interface UsersTable {
-  id: string | Buffer,
+  id: string | Buffer, 
   email: string,
   firstname: string, 
   lastname: string, 
@@ -34,7 +35,7 @@ export interface TranscriptionsTable {
   name: string,
   file: string,
   lang: string,
-  status: 'waiting' | 'processing' | 'error',
+  status: 'waiting' | 'processing' | 'error' | 'done'
   created: Date,
   processed?: Date | null,
   done?: Date | null,
@@ -48,6 +49,16 @@ export interface TranscriptionsTable {
 export type Transcription = Selectable<TranscriptionsTable>
 export type InsertTranscription = Insertable<TranscriptionsTable>
 export type UpdateTranscription = Updateable<TranscriptionsTable>
+
+export interface TranscriptionUsersTable {
+  id: string | Buffer, 
+  idx_transcription: string | Buffer,
+  idx_user: string | Buffer,
+}
+
+export type TranscriptionUser = Selectable<TranscriptionUsersTable>
+export type InsertTranscriptionUser = Insertable<TranscriptionUsersTable>
+export type UpdateTranscriptionUser = Updateable<TranscriptionUsersTable>
 
 export default {
 
