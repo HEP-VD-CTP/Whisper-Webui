@@ -41,7 +41,8 @@ export async function findByUserId(userId: string | Buffer): Promise<Array<Parti
       'transcriptions.status', 
       'transcriptions.created',
       'transcriptions.processed',
-      'transcriptions.done'
+      'transcriptions.done',
+      'transcriptions.deleted',
     ])
     .innerJoin('transcriptions_users', 'transcriptions.id', 'transcriptions_users.idx_transcription')
     .where('transcriptions_users.idx_user', '=', userId)
@@ -70,10 +71,36 @@ export async function createTranscription(transcription: InsertTranscription, us
   })
 }
 
+export async function updateTranscription(id: string | Buffer, data: Partial<UpdateTranscription>): Promise<void> {
+  if (typeof id === 'string')
+    id = Buffer.from(id, 'hex')
 
+  const result = await db.updateTable('transcriptions')
+    .set(data)
+    .where('id', '=', id)
+    .executeTakeFirst()
+
+  if (!result?.numUpdatedRows)
+    throw new NotFoundException(`Transcription not found`)
+}
+
+export async function deleteById(id: string | Buffer): Promise<void> {
+  if (typeof id === 'string')
+    id = Buffer.from(id, 'hex')
+
+  const result = await db.updateTable('transcriptions')
+    .set({ deleted: 1 })
+    .where('id', '=', id)
+    .executeTakeFirst()
+
+  if (!result.numUpdatedRows)
+    throw new NotFoundException(`Transcription not found`)
+}
 
 export default {
   findById,
   findByUserId,
   createTranscription,
+  updateTranscription,
+  deleteById
 }

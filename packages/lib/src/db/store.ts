@@ -34,11 +34,22 @@ async function get(key: string): Promise<any> {
   return await redis.get(key)
 }
 
+async function enqueue(queueName: string, value: string): Promise<void> {
+  await redis.lpush(`queue:${queueName}`, value)
+}
+
+async function dequeue(queueName: string, timeoutSeconds: number = 60): Promise<string | null> {
+  const result = await redis.brpop(`queue:${queueName}`, timeoutSeconds)
+  return result ? result[1] : null
+}
+
 export default {
   createSession,
   getSession,
   extendSession,
   deleteSession,
   set,
-  get
+  get,
+  enqueue,
+  dequeue
 }

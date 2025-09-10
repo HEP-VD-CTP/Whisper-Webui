@@ -59,6 +59,10 @@ export type TranslationSchema = {
     no_results: string
   },
   transcription: {
+    delete: {
+      title: string,
+      message: string
+    },
     transcription: string,
     transcriptions: string, 
     add_new_transcription: string,

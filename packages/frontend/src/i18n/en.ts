@@ -65,6 +65,10 @@ const en: TranslationSchema = {
     no_results: `No results`,
   },
   transcription: {
+    delete: {
+      title: `Delete transcription`,
+      message: `Are you sure you want to delete this transcription?`
+    },
     status: {
       waiting: `Waiting`,
       processing: `Processing`,

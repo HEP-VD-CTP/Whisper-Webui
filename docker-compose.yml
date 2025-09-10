@@ -100,4 +100,26 @@ services:
       - nginx_network
     command: npm run dev
 
+  worker:
+    container_name: whisper-webui-worker
+    build:
+      context: .
+      dockerfile: ./packages/worker/Dockerfile
+      target: ${WHISPER_WEBUI_ENV}
+    environment:
+      - NODE_ENV=${WHISPER_WEBUI_ENV}
+      - MYSQL_URL=${MYSQL_URL}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - ${WHISPER_WEBUI_VOLUME_PATH}/logs:/data/logs
+      - ${WHISPER_WEBUI_VOLUME_PATH}/transcriptions:/data/transcriptions
+      - ./packages/worker:/app_dev/packages/worker
+      - ./packages/lib:/app_dev/packages/lib
+    networks:
+      - whisper_network
+    command: npm run dev
+
 

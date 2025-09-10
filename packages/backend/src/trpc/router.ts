@@ -273,21 +273,32 @@ const transcriptionRouter = t.router({
   // find transcriptions by userId
   findByUserId: authedProcedure
   .input(z.object({ 
-    userId: z.string() 
+    userId: idZodValidation
   }))
   .query(async opts => {
     if (opts.input.userId != opts.ctx.user?.id && !opts.ctx.user?.admin)
       throw new ForbiddenException(`You are not allowed to access this resource`)
 
-    const transcriptions = await DAO.transcriptions.findByUserId(opts.input.userId)
-
-    console.log(transcriptions)
-
-    // remove removed transcriptions for non admin
-    return opts.ctx.user?.admin ? 
-      transcriptions : 
-      transcriptions.filter(transcription => !transcription.deleted)
+    // return only the transcriptions that are not deleted
+    return (await DAO.transcriptions.findByUserId(opts.input.userId))
+      .filter(transcription => !transcription.deleted)
   }),
+
+  // delete transcription by id
+  deleteByTranscriptionId: authedProcedure
+  .input(z.object({ 
+    transcriptionId: idZodValidation
+  }))
+  .mutation(async opts => {
+    // we need to check if the transcription belongs to the user if not admin
+    if (!opts.ctx.user?.admin){
+      const transcriptions = await DAO.transcriptions.findByUserId(opts.ctx.user?.id || '')
+      if (!transcriptions.find(trs => trs.id == opts.input.transcriptionId))
+        throw new ForbiddenException(`You are not allowed to delete this transcription`)
+    }
+    
+    await DAO.transcriptions.deleteById(opts.input.transcriptionId)
+  })
 
 
 })
