@@ -7,6 +7,22 @@ const redis = new IORedis({
   host: 'whisper-webui-redis',
   port: 6379,
 })
+// @ts-ignore
+const pubsubRedis = new IORedis({
+  host: 'whisper-webui-redis',
+  port: 6379,
+})
+
+// contains all the callbacks for each channel
+const cbs: Record<string, Array<(message: string) => Promise<void>>> = {}
+
+// check for incoming messages
+pubsubRedis.on('message', (channel, message) => {
+  // check if the channel exists and call all the callbacks
+  if (cbs[channel]) 
+    for (const cb of cbs[channel]) 
+      cb(message).catch(err => console.error(err))
+})
 
 // Store a session in redis with a given expiry time, by default 1 day.
 async function createSession(sessionId: string, sessionData: User, expSeconds: number = 86400): Promise<string> {
@@ -35,12 +51,30 @@ async function get(key: string): Promise<any> {
 }
 
 async function enqueue(queueName: string, value: string): Promise<void> {
-  await redis.lpush(`queue:${queueName}`, value)
+  return await redis.lpush(`queue:${queueName}`, value)
 }
 
 async function dequeue(queueName: string, timeoutSeconds: number = 60): Promise<string | null> {
   const result = await redis.brpop(`queue:${queueName}`, timeoutSeconds)
   return result ? result[1] : null
+}
+
+async function publish(channel: string, message: string): Promise<number> {
+  return await redis.publish(channel, message)
+}
+
+function subscribe(channel: string, cb: (message: string) => Promise<void>): void {
+  // check if the channel is already subscribed
+  if (!cbs[channel]) {
+    pubsubRedis.subscribe(channel, (err, count) => {
+      if (err) 
+        console.error(`Failed to subscribe to channel:`, err)
+    })
+    cbs[channel] = []
+  }
+
+  // store the callback
+  cbs[channel].push(cb)
 }
 
 export default {
@@ -51,5 +85,7 @@ export default {
   set,
   get,
   enqueue,
-  dequeue
+  dequeue,
+  publish,
+  subscribe
 }

@@ -6,3 +6,13 @@ export type UsersStats = {
   archived: number
 }
 
+export type Segment = {
+  start: number
+  end: number
+  speaker: string
+  words: Array<{ 
+		start: number 
+		end: number 
+		word: string 
+	}>
+}

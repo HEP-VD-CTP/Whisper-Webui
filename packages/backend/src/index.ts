@@ -71,11 +71,17 @@ app.register(fastifySwaggerUi, {
   uiConfig: {
     docExpansion: 'list',
     deepLinking: true,
-  },
+  }, 
 });
 
 app.addHook('preHandler', async (request, reply) => {})
 app.addHook('onResponse', async (request, reply) => {})
+
+store.subscribe('updates', async (message: string) => {
+  message = JSON.parse(message)
+  console.log('Message received in updates channel:')
+  console.log(message)
+})
 
 // Handle whisper video upload
 app.route({
@@ -97,7 +103,7 @@ app.route({
       required: ['lang'],
     },
   },
-  handler: async (req: FastifyRequest<{ Querystring: { lang: string} }>, res) => {
+  handler: async (req: FastifyRequest<{ Querystring: { lang: string }}>, res) => {
     const cookies = Object.fromEntries(
       (req.headers.cookie || '')
         .split('; ')
@@ -112,7 +118,7 @@ app.route({
       throw new ForbiddenException(`No sessionId provided`)
 
     if (sessionId.length != 24)
-      throw new ForbiddenException(`Invalid sessionId provided`)
+      throw new ForbiddenException(`Invalid sessionId length`)
 
     for (let i = 0; i < 24; i++) {
       const charCode = sessionId.charCodeAt(i)
@@ -160,8 +166,7 @@ app.route({
       `Email: ${user.email}\n` +
       `Name: ${name}\n` +
       `Filename: ${filename}\n` +
-      `Mimetype: ${mimetype}\n` +
-      `FilePath: `);
+      `Mimetype: ${mimetype}\n`);
     
     // transcription id
     const uid = lib.uid.genUID()

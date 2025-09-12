@@ -113,6 +113,11 @@ services:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - HF_TOKEN=${HF_TOKEN}
+      - WHISPER_CPU_THREADS=${WHISPER_CPU_THREADS}
+      - WHISPER_MODEL=${WHISPER_MODEL}
+      - BATCH_SIZE=${BATCH_SIZE}
+      - WHISPER_DEVICE=${WHISPER_DEVICE}
     volumes:
       - ${WHISPER_WEBUI_VOLUME_PATH}/logs:/data/logs
       - ${WHISPER_WEBUI_VOLUME_PATH}/transcriptions:/data/transcriptions

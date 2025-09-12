@@ -212,13 +212,15 @@ function deleteTranscription(id: string){
     title: t('transcription.delete.title'),
     message: t('transcription.delete.message'),
     ok: { label: t('misc.delete') },
-    cancel: { label: t('misc.cancel') },
-    cancel: true,
+    cancel: { label: t('misc.cancel'), flat: true },
     persistent: true
   })
   .onOk( async () => {
     await trpc.transcriptions.deleteByTranscriptionId.mutate({ transcriptionId: id })
     transcriptions.value = transcriptions.value.filter(trs => trs.id != id)
+
+    if (id == selectedTranscriptionId.value)
+      selectedTranscriptionId.value = null
   })
 } 
 

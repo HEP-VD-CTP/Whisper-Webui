@@ -10,7 +10,8 @@ import {
   Transcription,
   InsertTranscription,
   UpdateTranscription,
-  InsertTranscriptionUser
+  InsertTranscriptionUser,
+  User
 } from '@whisper-webui/lib/src/types/kysely.ts'
 
 export async function findById(id: string | Buffer): Promise<Transcription> {
@@ -97,9 +98,24 @@ export async function deleteById(id: string | Buffer): Promise<void> {
     throw new NotFoundException(`Transcription not found`)
 }
 
+export async function findTrandscriptionOwners(id: string | Buffer): Promise<Array<Partial<User>>> {
+  if (typeof id === 'string')
+    id = Buffer.from(id, 'hex')
+
+  return await db.selectFrom('users')
+    .select([
+      'users.id',
+      'users.email'
+    ])
+    .innerJoin('transcriptions_users', 'users.id', 'transcriptions_users.idx_user')
+    .where('transcriptions_users.idx_transcription', '=', id)
+    .execute()
+}
+
 export default {
   findById,
   findByUserId,
+  findTrandscriptionOwners,
   createTranscription,
   updateTranscription,
   deleteById
