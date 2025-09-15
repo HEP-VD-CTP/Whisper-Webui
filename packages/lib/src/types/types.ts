@@ -16,3 +16,12 @@ export type Segment = {
 		word: string 
 	}>
 }
+
+export type StatusUpdate = {
+  transcriptionId: string,
+  status: 'queued' | 'processing' | 'done' | 'error',
+  owners: Array<{
+    id: string,
+    email: string
+  }>
+}

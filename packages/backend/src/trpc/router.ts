@@ -309,9 +309,9 @@ export const appRouter = t.router({
   transcriptions: transcriptionRouter
 }) 
 
-export const openAPIDocument = generateOpenAPIDocumentFromTRPCRouter(appRouter, {
+/*export const openAPIDocument = generateOpenAPIDocumentFromTRPCRouter(appRouter, {
   pathPrefix: '/trpc',
-})
+})*/
 
 // export type definition of API
 export type AppRouter = typeof appRouter

@@ -1,3 +1,4 @@
+
 import worker from './worker.ts'
 import DAO from '@whisper-webui/lib/src/db/DAO.ts'
 import store from '@whisper-webui/lib/src/db/store.ts'
@@ -5,7 +6,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
-import { type Segment } from '@whisper-webui/lib/src/types/types.ts'
+import { type Segment, type StatusUpdate } from '@whisper-webui/lib/src/types/types.ts'
+import { type Transcription } from '@whisper-webui/lib/src/types/kysely.ts'
 
 const execFileAsync = promisify(execFile)
 
@@ -24,16 +26,35 @@ console.log(`##########################`)
 console.log(`# Whisper Worker started #`)
 console.log(`##########################`)
 
-// get each transcription id from the queue one by one and process it
+// get transcription id from the queue one by one and process it
 worker.use(async (id: string) => {
+  const statusUpdate: StatusUpdate = {
+    transcriptionId: id,
+    owners: [],
+    status: 'error'
+  }
+
   try {
+    // get transcription details
     console.log(`Received ID: ${id}`)
-    const transcription = await DAO.transcriptions.findById(id)
+    const transcription: Transcription = await DAO.transcriptions.findById(id)
+    statusUpdate.owners = (await DAO.transcriptions.findTrandscriptionOwners(id))
+      .filter(x => x.id !== undefined && x.email !== undefined)
+      .map(x => ({
+        id: typeof x.id === 'string' ? x.id : (x.id instanceof Buffer ? x.id.toString('hex') : ''),
+        email: x.email as string
+      }))
     console.log('Transcription:')
     console.log(transcription)
+    console.log('Owners:')
+    console.log(statusUpdate.owners)
 
     // update transcription status to processing
     await DAO.transcriptions.updateTranscription(id, { status: 'processing', processed: new Date() })
+
+    // send status update to all owners
+    statusUpdate.status = 'processing'
+    store.publish('updates', JSON.stringify(statusUpdate))
 
     // create the destination folder
     const destFolder = path.join(`/data/transcriptions/out/`, id)
@@ -120,7 +141,7 @@ worker.use(async (id: string) => {
       if (!words[i].end) words[i].end = words[i-1].end
     }
     
-    // Group consecutive words by speaker
+    // group consecutive words by speaker
     const segments: Array<Segment> = []
     let currentSegment: Segment|null = null
     for (const word of words) {
@@ -149,22 +170,23 @@ worker.use(async (id: string) => {
       done: new Date()
     })
 
-    // get all owners for this transcription
-    const owners = await DAO.transcriptions.findTrandscriptionOwners(id)
-    console.log('Owners:')
-    console.log(owners)
+    // send status update to all owners
+    statusUpdate.status = 'done'
+    store.publish('updates', JSON.stringify(statusUpdate))
 
-    store.publish('updates', JSON.stringify({
-      id,
-      owners: owners
-    }))
   }
   catch(err){
     console.error(err)
+
+    // send status update to all owners
+    store.publish('updates', JSON.stringify(statusUpdate))
+    
+    // update transcription status to error
     await DAO.transcriptions.updateTranscription(id, { status: 'error', comment: (err instanceof Error ? err.message : String(err))})
   }
   
 })
+
 
 
 
