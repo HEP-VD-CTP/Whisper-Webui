@@ -5,7 +5,7 @@ import superjson from 'superjson'
 import DAO from '@whisper-webui/lib/src/db/DAO.ts'
 import store from '@whisper-webui/lib/src/db/store.ts'
 import lib from '@whisper-webui/lib/src/lib/index.ts'
-import { BadRequestException, ForbiddenException, NotFoundException, UnauthorizedException } from '@whisper-webui/lib/src/db/exceptions.ts'
+import { BadRequestException, ForbiddenException, NotFoundException, UnauthorizedException, ConflictException } from '@whisper-webui/lib/src/db/exceptions.ts'
 
 import { Context } from 'src/trpc/context.ts'
 import { User } from '@whisper-webui/lib/src/types/kysely.ts'
@@ -155,14 +155,6 @@ const authRouter = t.router({
 // # Users router #
 // ################
 const usersRouter = t.router({
-  /*test: adminProcedure
-  .input(z.string())
-  .query(opts => {
-    console.log(`TEST from server`)
-    console.log(opts.ctx.user)
-    return true
-  }),*/
-
   // find a user
   find: adminProcedure
   //.input(z.string())
@@ -324,8 +316,71 @@ const transcriptionRouter = t.router({
     }
     
     await DAO.transcriptions.deleteById(opts.input.transcriptionId)
-  })
+  }),
 
+  // get transcription owners
+  getOwners: authedProcedure
+  .input(z.object({ 
+    transcriptionId: idZodValidation
+  }))
+  .query(async opts => {
+    // we need to check if the transcription belongs to the user if not admin
+    if (!opts.ctx.user?.admin){
+      const transcriptions = await DAO.transcriptions.findByUserId(opts.ctx.user?.id || '')
+      if (!transcriptions.find(trs => trs.id == opts.input.transcriptionId))
+        throw new ForbiddenException(`You are not allowed to access this transcription`)
+    }
+
+    return await DAO.transcriptions.findTrandscriptionOwners(opts.input.transcriptionId)
+  }),
+
+  // add an owner to a transcription
+  addOwner: authedProcedure
+  .input(z.object({ 
+    transcriptionId: idZodValidation,
+    email: emailZodValidation
+  }))
+  .mutation(async opts => {
+    // we need to check if the transcription belongs to the user if not admin
+    if (!opts.ctx.user?.admin){
+      const transcriptions = await DAO.transcriptions.findByUserId(opts.ctx.user?.id || '')
+      if (!transcriptions.find(trs => trs.id == opts.input.transcriptionId))
+        throw new ForbiddenException(`You are not allowed to access this transcription`)
+    }
+
+    const user = await DAO.users.findByEmail(opts.input.email)
+    if (!user || user.archived)
+      throw new NotFoundException(`User not found`)
+
+    // check if the user is already an owner
+    const owners = await DAO.transcriptions.findTrandscriptionOwners(opts.input.transcriptionId)
+    if (owners.find(o => o.id == user.id))
+      throw new ConflictException(`The user is already an owner of this transcription`)
+
+    await DAO.transcriptions.addOwner(opts.input.transcriptionId, user.id)
+  }),
+
+  // remove an owner from a transcription
+  removeOwner: authedProcedure
+  .input(z.object({ 
+    transcriptionId: idZodValidation,
+    userId: idZodValidation
+  }))
+  .mutation(async opts => {
+    // we need to check if the transcription belongs to the user if not admin
+    if (!opts.ctx.user?.admin){
+      const transcriptions = await DAO.transcriptions.findByUserId(opts.ctx.user?.id || '')
+      if (!transcriptions.find(trs => trs.id == opts.input.transcriptionId))
+        throw new ForbiddenException(`You are not allowed to access this transcription`)
+    }
+
+    // check if we are removing the last owner
+    const owners = await DAO.transcriptions.findTrandscriptionOwners(opts.input.transcriptionId)
+    if (owners.length <= 1)
+      throw new ConflictException(`You can't remove the last owner of a transcription`)
+
+    await DAO.transcriptions.removeOwner(opts.input.transcriptionId, opts.input.userId)
+  }),
 
 })
 

@@ -1,7 +1,7 @@
 
 function formatDate(date: Date, format: string): string {
   if (!(date instanceof Date) || isNaN(date.getTime()))
-    return "Invalid date !"
+    return "-"
 
   return format
     .replace("DD", date.getDate().toString().padStart(2, '0'))

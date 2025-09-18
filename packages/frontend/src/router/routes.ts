@@ -4,10 +4,16 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('pages/transcriptions.vue') }],
-    beforeEnter: (to, from, next) => {
-      next();
-    }
+    children: [{ 
+      path: '', 
+      component: () => import('pages/transcriptions.vue'),
+      children: [
+        {
+          path: ':transcriptionId',
+          component: () => import('pages/transcriptions.vue'),
+        },
+      ],
+    }],
   },
   {
     path: '/login',

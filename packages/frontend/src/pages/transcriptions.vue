@@ -92,8 +92,12 @@
     </template>
     <template v-else>
       <WhisperLanding v-if="selectedTranscriptionId == null" />
+      <template v-else>
+        <span class="text-weight-bold">{{ selectedTranscription.name }}</span> 
+        <TranscriptionProperties v-if="showPropertiesAndShare" :transcription="selectedTranscription"/>
+      </template>
       
-      <TranscriptionProperties :transcription="selectedTranscription"/>
+      
       
     </template>
     
@@ -113,9 +117,11 @@ import { Transcription } from '@whisper-webui/lib/src/types/kysely.ts'
 import trpc from 'src/lib/trpc'
 import date from 'src/lib/date'
 import { type StatusUpdate } from '@whisper-webui/lib/src/types/types.ts'
+import { useRoute, useRouter, Router, RouteLocationNormalizedLoaded } from 'vue-router'
 
 
-
+const router: Router = useRouter()
+const route: RouteLocationNormalizedLoaded = useRoute()
 const q: QVueGlobals = useQuasar()
 const { t } = useI18n()
 const store = whisperStore()
@@ -124,8 +130,8 @@ const mainLoading: Ref<boolean> = ref(false)
 
 const transcriptions: Ref<Array<Partial<Transcription>>> = ref([])
 const selectedTranscription: Ref<Transcription|null> = ref(null)
-
 const selectedTranscriptionId: Ref<string|null> = ref(null)
+const showPropertiesAndShare: Ref<boolean> = ref(false)
 
 const uploaderModal: Ref<boolean> = ref(false)
 const langOptions: Array<Record<string, string>> = [
@@ -235,12 +241,15 @@ const lang: Ref<Record<string, string>> = ref(langOptions.values[0])
 function clear(){
   selectedTranscriptionId.value = null
   selectedTranscription.value = null
+  showPropertiesAndShare.value = false
+  router.push(`/`)
+
 }
 
 async function openPropertyAndShare(id: string){
-
   if (selectedTranscriptionId.value != id)
     await selectTranscription(id)
+  showPropertiesAndShare.value = true
 }
 
 async function selectTranscription(id: string){
@@ -252,7 +261,8 @@ async function selectTranscription(id: string){
   try {
     selectedTranscription.value = await trpc.transcriptions.findById.query({ transcriptionId: id })
     //selectedMetadatas.value = jsonToHtmlList(JSON.parse(transcription.metadata))
-    
+    router.push(`/${id}`)
+
   } 
   catch (error) {
     console.error(error)
@@ -276,7 +286,7 @@ function deleteTranscription(id: string){
     transcriptions.value = transcriptions.value.filter(trs => trs.id != id)
 
     if (id == selectedTranscriptionId.value)
-      selectedTranscriptionId.value = null
+      clear()
   })
 } 
 
@@ -349,6 +359,12 @@ onMounted(async () => {
 
   document.title = `${t('transcription.transcription')} - ${store.getTitle()}`
 
+  // get the transcription id from the route if needed
+  const id = route.params.transcriptionId as string | undefined
+  if (id) 
+    selectTranscription(id)
+
+  // get the user transcriptions
   transcriptions.value = await trpc.transcriptions.findByUserId.query({
     userId: store.getUser().id as string,
     deleted: false

@@ -46,6 +46,8 @@ export type TranslationSchema = {
       title: string,
       message: string
     },
+    user_added: string,
+    user_removed: string,
     active_account_exists: string, 
     unarchivable: string,
     user_details: string,
@@ -83,6 +85,18 @@ export type TranslationSchema = {
     },
     properties_and_metadata: {
       title: string,
+      metadatas: string,
+      properties: string,
+      infos: {
+        name: string,
+        file: string,
+        lang: string, 
+        duration: string,
+        created: string,
+        processed: string,
+        done: string,
+        add_user_label: string,
+      }
     }
   },
   validation: {

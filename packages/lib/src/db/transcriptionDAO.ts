@@ -13,6 +13,7 @@ import {
   InsertTranscriptionUser,
   User
 } from '@whisper-webui/lib/src/types/kysely.ts'
+import lib from '@whisper-webui/lib/src/lib/index.ts'
 
 export async function findById(id: string | Buffer): Promise<Transcription> {
   if (typeof id === 'string')
@@ -98,6 +99,36 @@ export async function deleteById(id: string | Buffer): Promise<void> {
     throw new NotFoundException(`Transcription not found`)
 }
 
+export async function addOwner(transcriptionId: string | Buffer, userId: string | Buffer): Promise<void> {
+  if (typeof transcriptionId === 'string')
+    transcriptionId = Buffer.from(transcriptionId, 'hex')
+  if (typeof userId === 'string')
+    userId = Buffer.from(userId, 'hex')
+  
+  await db.insertInto('transcriptions_users')
+    .values({
+      id: Buffer.from(lib.uid.genUID(), 'hex'),
+      idx_transcription: transcriptionId,
+      idx_user: userId
+    })
+    .execute()
+} 
+
+export async function removeOwner(transcriptionId: string | Buffer, userId: string | Buffer): Promise<void> {
+  if (typeof transcriptionId === 'string')
+    transcriptionId = Buffer.from(transcriptionId, 'hex')
+  if (typeof userId === 'string')
+    userId = Buffer.from(userId, 'hex')
+  
+  const result = await db.deleteFrom('transcriptions_users')
+    .where('idx_transcription', '=', transcriptionId)
+    .where('idx_user', '=', userId)
+    .executeTakeFirst()
+
+  if (!result.numDeletedRows)
+    throw new NotFoundException(`Transcription owner not found`)
+} 
+
 export async function findTrandscriptionOwners(id: string | Buffer): Promise<Array<Partial<User>>> {
   if (typeof id === 'string')
     id = Buffer.from(id, 'hex')
@@ -105,6 +136,8 @@ export async function findTrandscriptionOwners(id: string | Buffer): Promise<Arr
   return await db.selectFrom('users')
     .select([
       'users.id',
+      'users.firstname',
+      'users.lastname',
       'users.email'
     ])
     .innerJoin('transcriptions_users', 'users.id', 'transcriptions_users.idx_user')
@@ -116,6 +149,8 @@ export default {
   findById,
   findByUserId,
   findTrandscriptionOwners,
+  addOwner,
+  removeOwner,
   createTranscription,
   updateTranscription,
   deleteById

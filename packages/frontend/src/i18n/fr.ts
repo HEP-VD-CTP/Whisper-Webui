@@ -48,6 +48,8 @@ const fr: TranslationSchema = {
       title: `Supprimer l'utilisateur`,
       message: `Êtes-vous sûr de vouloir supprimer cet utilisateur?`
     },
+    user_added: `Utilisateur ajouté`,
+    user_removed: `Utilisateur supprimé`,
     active_account_exists: `Un compte actif existe déjà avec cette adresse email`,
     unarchivable: `L'utilisateur ne peut pas être désarchivé`,
     user_details: `Détails de l'utilisateur`,
@@ -88,7 +90,19 @@ const fr: TranslationSchema = {
     upload_failed: `Une erreur s'est produite lors de l'envoi du fichier. Si l'erreur persiste, veuillez contacter l'administrateur.`,
     upload_rejected: `Votre fichier a été rejeté.`,
     properties_and_metadata: {
-      title: `Propriétés et partage`
+      title: `Propriétés et partage`,
+      metadatas: `Métadonnées`,
+      properties: `Propriétés`,
+      infos: {
+        name: "Nom de la transcription",
+        file: "Nom du Fichier",
+        lang: "Langue de transcription", 
+        duration: "Durée de l'audio",
+        created: "Date de création",
+        processed: "Date de traitement",
+        done: "Date de fin",
+        add_user_label: "Entrez l'adresse email d'un utilisateur déjà inscrit pour l'ajouter à votre transcription."
+      }
     }
   },
   validation: {

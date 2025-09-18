@@ -46,6 +46,19 @@ export async function findById(id: string | Buffer): Promise<User> {
   return user
 }
 
+export async function findByEmail(email: string): Promise<User> {
+  const user = await db.selectFrom('users')
+    .selectAll()
+    .where('email', '=', email)
+    .where('archived', '=', false)
+    .executeTakeFirst()
+  
+  if (!user)
+    throw new NotFoundException(`User not found`)
+
+  return user
+}
+
 export async function createUser(user: InsertUser): Promise<User> {
   if (typeof user.id === 'string')
     user.id = Buffer.from(user.id, 'hex')
@@ -189,6 +202,7 @@ export async function login(email: string, password: string): Promise<User> {
 export default {
   findAll,
   findById,
+  findByEmail,
   deleteUser,
   createUser,
   login,

@@ -48,6 +48,8 @@ const en: TranslationSchema = {
       title: `Delete user`,
       message: `Are you sure you want to delete this user?`
     },
+    user_added: `User added`,
+    user_removed: `User removed`,
     active_account_exists: `An active account already exists with this email address`,
     unarchivable: `The user can not be unarchived`,
     user_details: `User details`,
@@ -88,7 +90,19 @@ const en: TranslationSchema = {
     upload_failed: `Your file upload has failed. Please try again later. and contact support if the problem persists.`,
     upload_rejected: `The file is not supported.`,
     properties_and_metadata: {
-      title: `Properties and sharing`
+      title: `Properties and sharing`,
+      metadatas: `Metadatas`,
+      properties: `Properties`,
+      infos: {
+        name: "Transcription name",
+        file: "File name",
+        lang: "Transcription language", 
+        duration: "Audio duration",
+        created: "Date created",
+        processed: "Date processed",
+        done: "Date done",
+        add_user_label: "Enter the email address of an already registered user to add them to your transcription."
+      }
     }
   },
   validation: {  
