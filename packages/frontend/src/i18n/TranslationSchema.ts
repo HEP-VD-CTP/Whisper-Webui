@@ -17,7 +17,8 @@ export type TranslationSchema = {
     language: string,
     settings: string,
     created_at: string,
-    wrong_input: string
+    wrong_input: string,
+    error_message: string
   },
   user: {
     firstname: string, 
@@ -26,6 +27,7 @@ export type TranslationSchema = {
     password: string,
     user_account: string,
     change_password: string,
+    users: string
   },
   users: {
     admin_role: {
@@ -78,6 +80,9 @@ export type TranslationSchema = {
       processing: string, 
       done: string,
       error: string
+    },
+    properties_and_metadata: {
+      title: string,
     }
   },
   validation: {

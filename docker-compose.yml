@@ -100,6 +100,24 @@ services:
       - nginx_network
     command: npm run dev
 
+  ws:
+    container_name: whisper-webui-ws
+    build:
+      context: .
+      dockerfile: ./packages/ws/Dockerfile
+      target: ${WHISPER_WEBUI_ENV}
+    environment:
+      - NODE_ENV=${WHISPER_WEBUI_ENV}
+    expose: 
+      - 9001
+    volumes:
+      - ./packages/ws:/app_dev/packages/ws
+      - ./packages/lib:/app_dev/packages/lib
+    networks:
+      - nginx_network
+      - whisper_network
+    command: npm run dev
+
   worker:
     container_name: whisper-webui-worker
     build:

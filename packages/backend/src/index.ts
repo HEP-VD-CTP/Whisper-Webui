@@ -4,6 +4,7 @@ import urlData from '@fastify/url-data'
 import multipart from '@fastify/multipart'
 import { FastifyRequest } from 'fastify'
 import fastifyCors from '@fastify/cors'
+
 import path from 'node:path'
 import { pipeline } from 'stream/promises'
 import fs from 'node:fs'
@@ -41,6 +42,7 @@ app.register(fastifyCors, {
 app.register(fastifyCookie)
 app.register(multipart, { limits: { fileSize: 4 * 1024 * 1024 * 1024 } } ) // max file size 4GB
 app.register(urlData)
+
 
 // register trpc server
 app.register(fastifyTRPCPlugin, {
@@ -158,7 +160,7 @@ app.route({
     await pipeline(data.file, fs.createWriteStream(filePath))
 
     // save to db
-    await DAO.transcriptions.createTranscription({
+    await DAO.transcriptions.createTranscription(user.id, {
       id: uid,
       name: name,
       file: filename,
@@ -166,7 +168,7 @@ app.route({
       status: `waiting`,
       created: new Date(),
       deleted: 0
-    }, user.id)
+    })
 
     // send the transcription into the queue
     await store.enqueue('transcriptions', uid)
@@ -177,13 +179,11 @@ app.route({
   }
 })
 
-
-
-
 try {
   await app.listen({ host:`0.0.0.0`, port: PORT })
   logger.info(`startup`, `Backend is listening on port ${PORT} in ${process.env.NODE_ENV} mode`)
-} catch (err) {
+} 
+catch (err) {
   
   logger.error('startup', 'Backend failed to start', err instanceof Error ? err : new Error(String(err)))
   process.exit(1)

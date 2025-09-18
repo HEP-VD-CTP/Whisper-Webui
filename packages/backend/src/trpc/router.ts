@@ -1,12 +1,11 @@
 import { initTRPC } from '@trpc/server'
 import { set, z } from 'zod'
 import superjson from 'superjson'
-import { OperationMeta } from 'openapi-trpc'
-import { generateOpenAPIDocumentFromTRPCRouter } from 'openapi-trpc'
+//import { OperationMeta } from 'openapi-trpc'
 import DAO from '@whisper-webui/lib/src/db/DAO.ts'
 import store from '@whisper-webui/lib/src/db/store.ts'
 import lib from '@whisper-webui/lib/src/lib/index.ts'
-import { BadRequestException, ForbiddenException, UnauthorizedException } from '@whisper-webui/lib/src/db/exceptions.ts'
+import { BadRequestException, ForbiddenException, NotFoundException, UnauthorizedException } from '@whisper-webui/lib/src/db/exceptions.ts'
 
 import { Context } from 'src/trpc/context.ts'
 import { User } from '@whisper-webui/lib/src/types/kysely.ts'
@@ -36,7 +35,7 @@ const emailZodValidation = z.string().email().max(255)
 // user session expiration time
 const exp: number = parseInt(process.env.USER_SESSION_EXP_TIME || '86400')
 
-export const t = initTRPC.context<Context>().meta<OperationMeta>().create({
+export const t = initTRPC.context<Context>().create({
   transformer: superjson,
   errorFormatter({ error, shape }) {    
     if (shape.message.startsWith(`InvalidRequestException:`)){
@@ -270,18 +269,45 @@ const usersRouter = t.router({
 // #########################
 const transcriptionRouter = t.router({
 
+  // find transcription by id
+  findById: authedProcedure
+  .input(z.object({ 
+    transcriptionId: idZodValidation
+  }))
+  .query(async opts => {
+    // we need to check if the transcription belongs to the user
+    if (!opts.ctx.user?.admin){
+      const owners = await DAO.transcriptions.findTrandscriptionOwners(opts.input.transcriptionId)
+      if (!owners.find(o => o.id == opts.ctx.user?.id))
+        throw new ForbiddenException(`You are not allowed to access this transcription`)
+    }
+
+    const transcription = await DAO.transcriptions.findById(opts.input.transcriptionId)
+    if (!opts.ctx.user?.admin && transcription.deleted)
+      throw new NotFoundException(`This transcription has been deleted`)
+
+    return transcription
+  }),
+
   // find transcriptions by userId
   findByUserId: authedProcedure
   .input(z.object({ 
-    userId: idZodValidation
+    userId: idZodValidation,
+    deleted: z.boolean()
   }))
   .query(async opts => {
-    if (opts.input.userId != opts.ctx.user?.id && !opts.ctx.user?.admin)
+    if (!opts.ctx.user?.admin && opts.input.userId != opts.ctx.user?.id)
       throw new ForbiddenException(`You are not allowed to access this resource`)
 
-    // return only the transcriptions that are not deleted
-    return (await DAO.transcriptions.findByUserId(opts.input.userId))
-      .filter(transcription => !transcription.deleted)
+    // only admin can see deleted transcriptions
+    if (opts.input.deleted && !opts.ctx.user?.admin)
+      throw new ForbiddenException(`You are not allowed to access this resource`)
+
+    const transcriptions = await DAO.transcriptions.findByUserId(opts.input.userId)
+    
+    return opts.input.deleted ? 
+      transcriptions : 
+      transcriptions.filter(transcription => !transcription.deleted)
   }),
 
   // delete transcription by id

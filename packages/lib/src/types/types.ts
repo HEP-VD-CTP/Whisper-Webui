@@ -19,7 +19,7 @@ export type Segment = {
 
 export type StatusUpdate = {
   transcriptionId: string,
-  status: 'queued' | 'processing' | 'done' | 'error',
+  status: "error" | "waiting" | "processing" | "done",
   owners: Array<{
     id: string,
     email: string

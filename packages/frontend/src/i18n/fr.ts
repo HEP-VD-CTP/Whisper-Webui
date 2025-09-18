@@ -19,7 +19,8 @@ const fr: TranslationSchema = {
     language: `Langue`,
     settings: `Paramètres`,
     created_at: `Créé le`,
-    wrong_input: `Mauvaise entrée`
+    wrong_input: `Mauvaise entrée`,
+    error_message: `Une erreur s'est produite. Veuillez réessayer plus tard et contacter le support si le problème persiste.`
   },
   user: {
     firstname: `Prénom`,
@@ -27,7 +28,8 @@ const fr: TranslationSchema = {
     email: `Adresse email`,
     password: `Mot de passe`,
     user_account: `Compte utilisateur`,
-    change_password: `Changer le mot de passe`
+    change_password: `Changer le mot de passe`,
+    users: `Utilisateurs`
   },
   users: {
     admin_role: {
@@ -85,6 +87,9 @@ const fr: TranslationSchema = {
     upload_success: `Votre fichier a été envoyé avec succès ! Vous recevrez un mail lorsque la transcription sera terminée.`,
     upload_failed: `Une erreur s'est produite lors de l'envoi du fichier. Si l'erreur persiste, veuillez contacter l'administrateur.`,
     upload_rejected: `Votre fichier a été rejeté.`,
+    properties_and_metadata: {
+      title: `Propriétés et partage`
+    }
   },
   validation: {
     name: {

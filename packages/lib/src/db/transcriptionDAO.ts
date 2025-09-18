@@ -51,7 +51,7 @@ export async function findByUserId(userId: string | Buffer): Promise<Array<Parti
     .execute()
 }
 
-export async function createTranscription(transcription: InsertTranscription, userId: string | Buffer): Promise<void> {
+export async function createTranscription(userId: string | Buffer, transcription: InsertTranscription): Promise<void> {
   if (typeof transcription.id === 'string')
     transcription.id = Buffer.from(transcription.id, 'hex')
 

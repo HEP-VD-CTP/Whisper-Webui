@@ -19,7 +19,8 @@ const en: TranslationSchema = {
     language: `Language`,
     settings: `Settings`,
     created_at: `Created at`,
-    wrong_input: `Wrong input`
+    wrong_input: `Wrong input`,
+    error_message: `An error has occurred. Please try again later and contact support if the problem persists.`
   },
   user: {
     firstname: `Firstname`,
@@ -28,6 +29,7 @@ const en: TranslationSchema = {
     password: `Password`,
     user_account: `User account`,
     change_password: `Change password`,
+    users: `Users`
   },
   users: {
     admin_role: {
@@ -85,6 +87,9 @@ const en: TranslationSchema = {
     upload_success: `Your file has been successfully uploaded! You will receive an email when the transcription is finished.`,
     upload_failed: `Your file upload has failed. Please try again later. and contact support if the problem persists.`,
     upload_rejected: `The file is not supported.`,
+    properties_and_metadata: {
+      title: `Properties and sharing`
+    }
   },
   validation: {  
     name: {

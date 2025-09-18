@@ -12,8 +12,13 @@
       </q-list>
 
       <q-list>
-        <q-item-label header>{{ t('transcription.transcriptions') }} ({{ transcriptions.length }})</q-item-label>
-        <q-item v-for="(trs, index) of transcriptions" clickable @click="selectedTranscriptionId = trs.id as string" :active="selectedTranscriptionId == trs.id">
+        <q-item-label header>
+          {{ t('transcription.transcriptions') }} ({{ transcriptions.length }})
+          <q-badge v-if="!wsConnected" color="orange" align="top">
+              WS <q-spinner-radio size="1em" />
+          </q-badge>
+        </q-item-label>
+        <q-item v-for="(trs, index) of transcriptions" clickable @click="selectTranscription(trs.id as string)" :active="selectedTranscriptionId == trs.id">
           <q-item-section>
             <q-item-label style="white-space: normal; word-break: break-word;" lines="1">{{ trs.name }}</q-item-label>
             <q-item-label caption lines="1">
@@ -29,7 +34,10 @@
             <q-btn @click.prevent="e => e.stopPropagation()" icon="mdi-dots-vertical" flat round dense>
               <q-menu>
                 <q-list style="min-width: 100px">
-                  <q-item @click="deleteTranscription(trs?.id as string)" clickable v-close-popup>
+                  <q-item @click="openPropertyAndShare(trs?.id as string)" clickable v-close-popup>
+                    <q-item-section>{{ t('transcription.properties_and_metadata.title') }}</q-item-section>
+                  </q-item>
+                    <q-item @click="deleteTranscription(trs?.id as string)" clickable v-close-popup>
                     <q-item-section>{{ t('misc.delete') }}</q-item-section>
                   </q-item>
                 </q-list>
@@ -77,7 +85,18 @@
 
   <q-page class="q-pa-xs" :style="`${$q.screen.width >= 900 ? `width:900px` : `width:${$q.screen.width}px`};border:1px solid red`">
     
-    <WhisperLanding v-if="selectedTranscriptionId == null" />
+    <template v-if="mainLoading">
+      <div class="row items-center justify-center" style="height: 100%">
+        <q-spinner-pie size="50px" color="primary" />
+      </div>
+    </template>
+    <template v-else>
+      <WhisperLanding v-if="selectedTranscriptionId == null" />
+      
+      <TranscriptionProperties :transcription="selectedTranscription"/>
+      
+    </template>
+    
 
   </q-page>
 </template>
@@ -88,17 +107,23 @@ import { type Ref } from 'vue'
 import { whisperStore } from 'stores/WhisperStore'
 import { useI18n } from 'vue-i18n'
 import WhisperLanding from 'src/components/WhisperLanding.vue'
+import TranscriptionProperties from 'src/components/TranscriptionProperties.vue'
 import { useQuasar, QVueGlobals } from 'quasar'
 import { Transcription } from '@whisper-webui/lib/src/types/kysely.ts'
 import trpc from 'src/lib/trpc'
 import date from 'src/lib/date'
+import { type StatusUpdate } from '@whisper-webui/lib/src/types/types.ts'
+
 
 
 const q: QVueGlobals = useQuasar()
 const { t } = useI18n()
 const store = whisperStore()
+const wsConnected: Ref<boolean> = ref(false)
+const mainLoading: Ref<boolean> = ref(false)
 
 const transcriptions: Ref<Array<Partial<Transcription>>> = ref([])
+const selectedTranscription: Ref<Transcription|null> = ref(null)
 
 const selectedTranscriptionId: Ref<string|null> = ref(null)
 
@@ -207,6 +232,37 @@ const langOptions: Array<Record<string, string>> = [
 
 const lang: Ref<Record<string, string>> = ref(langOptions.values[0])
 
+function clear(){
+  selectedTranscriptionId.value = null
+  selectedTranscription.value = null
+}
+
+async function openPropertyAndShare(id: string){
+
+  if (selectedTranscriptionId.value != id)
+    await selectTranscription(id)
+}
+
+async function selectTranscription(id: string){
+  clear()
+  mainLoading.value = true
+
+  selectedTranscriptionId.value = id
+
+  try {
+    selectedTranscription.value = await trpc.transcriptions.findById.query({ transcriptionId: id })
+    //selectedMetadatas.value = jsonToHtmlList(JSON.parse(transcription.metadata))
+    
+  } 
+  catch (error) {
+    console.error(error)
+    selectedTranscriptionId.value = null
+    q.notify({ color: 'negative', message: t('misc.error_message'), position: 'top', group: false })
+  }
+  
+  mainLoading.value = false
+}
+
 function deleteTranscription(id: string){
   q.dialog({
     title: t('transcription.delete.title'),
@@ -249,8 +305,42 @@ function onFailed(data){
   console.error(data)
   q.notify({ color: 'negative', message: t('transcription.upload_failed'), position: 'top', group: false })
 }
-  
+
+let ws: WebSocket | null = null
+function openWebSocket() {
+  ws = new WebSocket(`wss://${store.getDomain()}/api/ws/updates`)
+
+  ws.onopen = () => {
+    wsConnected.value = true
+  }
+
+  ws.onmessage = (event) => {
+    const statusUpdate = JSON.parse(event.data) as StatusUpdate
+    
+    // update the transcription status only in the list
+    for (const trs of transcriptions.value){
+      if (trs.id == statusUpdate.transcriptionId){
+        trs.status = statusUpdate.status
+        break
+      } 
+    } 
+  }
+
+  ws.onclose = () => {
+    wsConnected.value = false
+    console.log('WebSocket connection closed, retrying...')
+    setTimeout(openWebSocket, 5000)
+  }
+
+  ws.onerror = (err) => {
+    console.error('WebSocket error:', err)
+  }
+}
+
+
 onMounted(async () => {
+  openWebSocket()
+
   // set the language to the default language
   langOptions.find((item) => {
     if (item.value == store.getLanguage())
@@ -259,6 +349,9 @@ onMounted(async () => {
 
   document.title = `${t('transcription.transcription')} - ${store.getTitle()}`
 
-  transcriptions.value = await trpc.transcriptions.findByUserId.query({userId: store.getUser().id as string})
+  transcriptions.value = await trpc.transcriptions.findByUserId.query({
+    userId: store.getUser().id as string,
+    deleted: false
+  })
 })
 </script>
