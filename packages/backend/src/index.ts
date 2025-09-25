@@ -34,7 +34,10 @@ import { User } from '@whisper-webui/lib/src/types/kysely.ts'
 
 const PORT: number = 9000
 
-const app = Fastify({ logger: false })
+const app = Fastify({ 
+  logger: false,
+  bodyLimit: 20 * 1024 * 1024 // 20MB
+})
  
 app.register(fastifyCors, { 
   origin: ['https://localhost:8443'], 

@@ -382,6 +382,40 @@ const transcriptionRouter = t.router({
     await DAO.transcriptions.removeOwner(opts.input.transcriptionId, opts.input.userId)
   }),
 
+  // update transcription data segments
+  updateTranscription: authedProcedure
+  .input(
+    z.object({
+      transcriptionId: idZodValidation,
+      data: z.array(
+        z.object({
+          start: z.number(),
+          end: z.number(),
+          speaker: z.string(),
+          words: z.array(
+            z.object({
+              start: z.number(),
+              end: z.number(),
+              word: z.string(),
+            })
+          ),
+        })
+      ),
+    })
+  )
+  .mutation(async opts => {
+    // we need to check if the transcription belongs to the user if not admin
+    if (!opts.ctx.user?.admin){
+      const transcriptions = await DAO.transcriptions.findByUserId(opts.ctx.user?.id || '')
+      if (!transcriptions.find(trs => trs.id == opts.input.transcriptionId))
+        throw new ForbiddenException(`You are not allowed to access this transcription`)
+    }
+
+    await DAO.transcriptions.updateTranscription(opts.input.transcriptionId, { 
+      text: JSON.stringify(opts.input.data) 
+    })
+  }),
+
 })
 
 export const appRouter = t.router({

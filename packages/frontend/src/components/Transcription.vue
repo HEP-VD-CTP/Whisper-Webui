@@ -15,7 +15,7 @@
         <q-input 
           v-model="segment.speaker"
           class="q-mb-lg q-pa-none"
-          @update:model-value="" 
+          @update:model-value="triggerTranscriptionUpdate" 
           maxlength="2048" 
           dense 
           standout 
@@ -300,8 +300,18 @@ function triggerTranscriptionUpdate(){
       }
     }
 
-    // now we make the actual update to the server
-    console.log(newData );
+    try {
+      // now we make the actual update to the server
+      await trpc.transcriptions.updateTranscription.mutate({
+        transcriptionId: props.transcription.id as string,
+        data: newData
+      })
+    }
+    catch(e){
+      console.error(e)
+      q.dialog({ title: t('misc.error'), message: t('misc.error_message') })
+    }
+    
 
     updatingTranscription.value = false;
   }, 2000);
