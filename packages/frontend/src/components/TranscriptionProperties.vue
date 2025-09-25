@@ -181,7 +181,7 @@ async function getOwners(){
 }
 
 onMounted(() => {
-  metadatas.value = props.transcription?.metadata ? jsonToHtmlList(JSON.parse(props.transcription.metadata)) :  '-'
+  metadatas.value = props.transcription?.metadata ? jsonToHtmlList(JSON.parse(props.transcription.metadata)) :  ''
   getOwners()
 })
 

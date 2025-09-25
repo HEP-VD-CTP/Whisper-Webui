@@ -1,6 +1,6 @@
 <template>
   <q-no-ssr>
-    <q-layout view="hHh Lpr lff" >
+    <q-layout view="hHh Lpr lFf" >
       <q-header :reveal="false" :class="store.darkMode ? 'text-white bg-dark-page' : 'text-black bg-white'">
         <q-toolbar>
           <q-btn flat dense round icon="menu" aria-label="Menu" @click="store.toggleDrawer()"/>
@@ -167,7 +167,7 @@ onServerPrefetch(async () => {
   catch(err){
     console.error(`Query user session failed: `, err)
   }
-});
+})
 
 async function changePwd(): Promise<void> {
   q.dialog({

@@ -38,11 +38,14 @@ worker.use(async (id: string) => {
     // get transcription details
     console.log(`Received ID: ${id}`)
     const transcription: Transcription = await DAO.transcriptions.findById(id)
+    
     statusUpdate.owners = (await DAO.transcriptions.findTrandscriptionOwners(id))
       .filter(x => x.id !== undefined && x.email !== undefined)
       .map(x => ({
         id: typeof x.id === 'string' ? x.id : (x.id instanceof Buffer ? x.id.toString('hex') : ''),
-        email: x.email as string
+        email: x.email as string,
+        firstName: x.firstname || '',
+        lastName: x.lastname || ''
       }))
     console.log('Transcription:')
     console.log(transcription)
@@ -62,7 +65,8 @@ worker.use(async (id: string) => {
 
     // extract the audio to mp3
     const sourceFile = path.join(`/data/transcriptions/in/`, id, transcription.file)
-    const targetFile = path.join(destFolder, `${path.parse(transcription.file).name}.mp3`)
+    const targetFileName = `${path.parse(transcription.file).name}.mp3`
+    const targetFile = path.join(destFolder, targetFileName)
     await execFileAsync('ffmpeg', [
       '-i', sourceFile,
       '-vn',
@@ -89,7 +93,7 @@ worker.use(async (id: string) => {
     const metadata: string|null = JSON.stringify(info) // remove unnecessary white spaces from ffprobe json output
     
     // update transcription with duration and metadata
-    await DAO.transcriptions.updateTranscription(id, { duration, metadata })
+    await DAO.transcriptions.updateTranscription(id, { duration, metadata, file: targetFileName })
 
     // build the whisperx command
     const cmd = [

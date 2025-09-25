@@ -83,6 +83,7 @@ export type TranslationSchema = {
       done: string,
       error: string
     },
+    to_top: string,
     properties_and_metadata: {
       title: string,
       metadatas: string,

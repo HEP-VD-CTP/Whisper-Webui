@@ -83,7 +83,7 @@
     </q-card>
   </q-dialog>
 
-  <q-page class="q-pa-xs" :style="`${$q.screen.width >= 900 ? `width:900px` : `width:${$q.screen.width}px`};border:1px solid red`">
+  <q-page class="q-pa-xs" :style="`${$q.screen.width >= 900 ? `width:900px` : `width:${$q.screen.width}px`};border:0px solid red`">
     
     <template v-if="mainLoading">
       <div class="row items-center justify-center" style="height: 100%">
@@ -95,6 +95,7 @@
       <template v-else>
         <span class="text-weight-bold">{{ selectedTranscription.name }}</span> 
         <TranscriptionProperties v-if="showPropertiesAndShare" :transcription="selectedTranscription"/>
+        <TranscriptionComponent v-else :transcription="selectedTranscription"/>
       </template>
       
       
@@ -112,6 +113,7 @@ import { whisperStore } from 'stores/WhisperStore'
 import { useI18n } from 'vue-i18n'
 import WhisperLanding from 'src/components/WhisperLanding.vue'
 import TranscriptionProperties from 'src/components/TranscriptionProperties.vue'
+import TranscriptionComponent from 'src/components/Transcription.vue'
 import { useQuasar, QVueGlobals } from 'quasar'
 import { Transcription } from '@whisper-webui/lib/src/types/kysely.ts'
 import trpc from 'src/lib/trpc'
@@ -243,26 +245,22 @@ function clear(){
   selectedTranscription.value = null
   showPropertiesAndShare.value = false
   router.push(`/`)
-
 }
 
 async function openPropertyAndShare(id: string){
+  showPropertiesAndShare.value = true
   if (selectedTranscriptionId.value != id)
     await selectTranscription(id)
-  showPropertiesAndShare.value = true
 }
 
 async function selectTranscription(id: string){
   clear()
   mainLoading.value = true
-
   selectedTranscriptionId.value = id
 
   try {
     selectedTranscription.value = await trpc.transcriptions.findById.query({ transcriptionId: id })
-    //selectedMetadatas.value = jsonToHtmlList(JSON.parse(transcription.metadata))
     router.push(`/${id}`)
-
   } 
   catch (error) {
     console.error(error)
@@ -307,7 +305,6 @@ function onRejected(data){
   console.error(`UPLOAD REJECTED`)
   console.error(data)
   q.notify({ color: 'negative', message: t('transcription.upload_rejected'), position: 'top', group: false })
-
 }
 
 function onFailed(data){

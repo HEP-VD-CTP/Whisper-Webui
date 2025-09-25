@@ -89,6 +89,7 @@ const en: TranslationSchema = {
     upload_success: `Your file has been successfully uploaded! You will receive an email when the transcription is finished.`,
     upload_failed: `Your file upload has failed. Please try again later. and contact support if the problem persists.`,
     upload_rejected: `The file is not supported.`,
+    to_top: `To top`,
     properties_and_metadata: {
       title: `Properties and sharing`,
       metadatas: `Metadatas`,

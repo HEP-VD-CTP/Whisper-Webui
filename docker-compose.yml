@@ -18,6 +18,7 @@ services:
       - 24678:24678 
     volumes:
       - ${WHISPER_WEBUI_VOLUME_PATH}/logs:/data/logs
+      - ${WHISPER_WEBUI_VOLUME_PATH}/transcriptions/out:/data/transcriptions/out
     networks:
       - nginx_network
     command: ["nginx", "-g", "daemon off;"]

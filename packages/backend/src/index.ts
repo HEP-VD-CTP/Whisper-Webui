@@ -29,6 +29,7 @@ import {
 } from '@whisper-webui/lib/src/db/exceptions.ts'
 import lib from '@whisper-webui/lib/src/lib/index.ts'
 import DAO from '@whisper-webui/lib/src/db/DAO.ts'
+import { User } from '@whisper-webui/lib/src/types/kysely.ts'
 
 
 const PORT: number = 9000
@@ -59,10 +60,40 @@ app.register(fastifyTRPCPlugin, {
 app.addHook('preHandler', async (request, reply) => {})
 app.addHook('onResponse', async (request, reply) => {})
 
-store.subscribe('updates', async (message: string) => {
-  message = JSON.parse(message)
-  console.log('Message received in updates channel:')
-  console.log(message)
+async function checkSession(rawCookies: string): Promise<User> {
+  const cookies = Object.fromEntries(
+    rawCookies
+      .split('; ')
+      .map(cookie => {
+        const [name, ...rest] = cookie.split('=')
+        return [name, rest.join('=')]
+      })
+  )
+
+  const sessionId = cookies.sessionId
+  if (!sessionId) 
+    throw new ForbiddenException(`No sessionId provided`)
+
+  if (sessionId.length != 24)
+    throw new ForbiddenException(`Invalid sessionId length`)
+
+  for (let i = 0; i < 24; i++) {
+    const charCode = sessionId.charCodeAt(i)
+    if (!(charCode >= 48 && charCode <= 57) && !(charCode >= 65 && charCode <= 70))
+      throw new ForbiddenException(`Invalid sessionId provided`)
+  }
+
+  const user = await store.getSession(sessionId)
+  if (!user)
+    throw new ForbiddenException(`User session not found`)
+  
+  return user
+}
+
+// handle route validation for nginx audio
+app.get('/auth', async (req, res) => {
+  await checkSession(req.headers.cookie || '')
+  return res.status(204).send()
 })
 
 // Handle whisper video upload
@@ -86,32 +117,8 @@ app.route({
     },
   },
   handler: async (req: FastifyRequest<{ Querystring: { lang: string }}>, res) => {
-    const cookies = Object.fromEntries(
-      (req.headers.cookie || '')
-        .split('; ')
-        .map(cookie => {
-          const [name, ...rest] = cookie.split('=')
-          return [name, rest.join('=')]
-        })
-    )
-    const sessionId = cookies.sessionId
-
-    if (!sessionId) 
-      throw new ForbiddenException(`No sessionId provided`)
-
-    if (sessionId.length != 24)
-      throw new ForbiddenException(`Invalid sessionId length`)
-
-    for (let i = 0; i < 24; i++) {
-      const charCode = sessionId.charCodeAt(i)
-      if (!(charCode >= 48 && charCode <= 57) && !(charCode >= 65 && charCode <= 70))
-        throw new ForbiddenException(`Invalid sessionId provided`)
-    }
-
     // get the user
-    const user = await store.getSession(sessionId)
-    if (!user)
-      throw new ForbiddenException(`Session not found`)
+    const user: User = await checkSession(req.headers.cookie || '')
 
     // get the file informations
     const data = await req.file({limits: {

@@ -89,6 +89,7 @@ const fr: TranslationSchema = {
     upload_success: `Votre fichier a été envoyé avec succès ! Vous recevrez un mail lorsque la transcription sera terminée.`,
     upload_failed: `Une erreur s'est produite lors de l'envoi du fichier. Si l'erreur persiste, veuillez contacter l'administrateur.`,
     upload_rejected: `Votre fichier a été rejeté.`,
+    to_top: `Aller en haut`,
     properties_and_metadata: {
       title: `Propriétés et partage`,
       metadatas: `Métadonnées`,

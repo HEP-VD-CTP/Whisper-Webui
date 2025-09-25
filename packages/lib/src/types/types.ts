@@ -22,6 +22,8 @@ export type StatusUpdate = {
   status: "error" | "waiting" | "processing" | "done",
   owners: Array<{
     id: string,
+    firstName: string,
+    lastName: string,
     email: string
   }>
 }
