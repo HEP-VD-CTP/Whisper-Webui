@@ -88,6 +88,7 @@ export type TranslationSchema = {
       title: string,
       metadatas: string,
       properties: string,
+      export: string,
       infos: {
         name: string,
         file: string,

@@ -11,6 +11,12 @@ const routes: RouteRecordRaw[] = [
         {
           path: ':transcriptionId',
           component: () => import('pages/transcriptions.vue'),
+          children: [
+            {
+              path: 'properties',
+              component: () => import('pages/transcriptions.vue'),
+            },
+          ]
         },
       ],
     }],

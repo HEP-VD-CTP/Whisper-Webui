@@ -34,10 +34,13 @@
             <q-btn @click.prevent="e => e.stopPropagation()" icon="mdi-dots-vertical" flat round dense>
               <q-menu>
                 <q-list style="min-width: 100px">
+                  <q-item @click="" clickable v-close-popup>
+                    <q-item-section>{{ t('transcription.properties_and_metadata.export') }}</q-item-section>
+                  </q-item>
                   <q-item @click="openPropertyAndShare(trs?.id as string)" clickable v-close-popup>
                     <q-item-section>{{ t('transcription.properties_and_metadata.title') }}</q-item-section>
                   </q-item>
-                    <q-item @click="deleteTranscription(trs?.id as string)" clickable v-close-popup>
+                  <q-item @click="deleteTranscription(trs?.id as string)" clickable v-close-popup>
                     <q-item-section>{{ t('misc.delete') }}</q-item-section>
                   </q-item>
                 </q-list>

@@ -94,6 +94,7 @@ const en: TranslationSchema = {
       title: `Properties and sharing`,
       metadatas: `Metadatas`,
       properties: `Properties`,
+      export: `Export transcription`,
       infos: {
         name: "Transcription name",
         file: "File name",
