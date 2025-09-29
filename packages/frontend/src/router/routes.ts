@@ -4,22 +4,31 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ 
-      path: '', 
-      component: () => import('pages/transcriptions.vue'),
-      children: [
-        {
-          path: ':transcriptionId',
-          component: () => import('pages/transcriptions.vue'),
-          children: [
-            {
-              path: 'properties',
-              component: () => import('pages/transcriptions.vue'),
-            },
-          ]
-        },
-      ],
-    }],
+    children: [
+      { 
+        path: '', 
+        component: () => import('pages/transcriptions.vue'),
+        children: [
+          {
+            path: '',
+            component: () => import('components/WhisperLanding.vue'),
+          },
+          { 
+            path: ':transcriptionId', 
+            component: () => import('components/Transcription.vue'),
+          },
+          { 
+            path: ':transcriptionId/properties', 
+            component: () => import('components/TranscriptionProperties.vue'),
+          },
+          { 
+            path: ':transcriptionId/export', 
+            component: () => import('components/ExportTranscription.vue'),
+          },
+        ],
+      },
+      
+    ],
   },
   {
     path: '/login',

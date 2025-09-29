@@ -1,5 +1,9 @@
 <template>
-  <div>
+  <div v-if="!loaded" class="row items-center justify-center" style="height: 100%">
+    <q-spinner-pie size="50px" color="primary" />
+  </div>
+  <div v-else>
+    <span class="text-weight-bold q-ml-md">{{ transcription.name }}</span> 
     <q-item-label header>{{ t('users.users') }}</q-item-label>
 
     
@@ -29,7 +33,6 @@
         </q-item-section>
       </q-item>
     </q-list>
-    
     
     <q-separator inset spaced />
     <q-item-label header>{{ t('transcription.properties_and_metadata.properties') }}</q-item-label>
@@ -99,6 +102,7 @@
 <script setup lang="ts">
 import { onMounted, ref, type Ref } from 'vue'
 import { whisperStore } from 'stores/WhisperStore'
+import { useRoute, useRouter, Router, RouteLocationNormalizedLoaded } from 'vue-router'
 import { Transcription, User } from '@whisper-webui/lib/src/types/kysely.ts'
 import { useI18n } from 'vue-i18n'
 import { useQuasar, QVueGlobals } from 'quasar'
@@ -107,25 +111,24 @@ import lib from 'src/lib/index'
 
 const { t } = useI18n()
 const q: QVueGlobals = useQuasar()
-const props = defineProps<{
-  transcription: Transcription | null
-}>()
-
+const router: Router = useRouter()
+const route: RouteLocationNormalizedLoaded = useRoute()
 const store = whisperStore()
 const metadatas: Ref<string> = ref('')
 const owners: Ref<Array<Partial<User>>> = ref([])
-const newUserEmail: Ref<string> = ref("");
-const addUserLoading: Ref<boolean> = ref(false);
-
+const newUserEmail: Ref<string> = ref("")
+const addUserLoading: Ref<boolean> = ref(false)
+const loaded: Ref<boolean> = ref(false)
+const transcription: Ref<Transcription | null> = ref(null)
 
 async function addUser(){
   addUserLoading.value = true
   
   try {
-    await trpc.transcriptions.addOwner.mutate({ transcriptionId: props.transcription?.id as string, email: newUserEmail.value })
+    await trpc.transcriptions.addOwner.mutate({ transcriptionId: route.params.transcriptionId as string, email: newUserEmail.value })
     q.notify({ color: 'positive', message: t('users.user_added'), position: 'top', group: false })
     newUserEmail.value = ''
-    await getOwners()
+    await load()
   }
   catch(e){
     console.error(e)
@@ -137,9 +140,9 @@ async function addUser(){
 
 async function deleteOwner(userId: string){
   try {
-    await trpc.transcriptions.removeOwner.mutate({ transcriptionId: props.transcription?.id as string, userId })
+    await trpc.transcriptions.removeOwner.mutate({ transcriptionId: route.params.transcriptionId as string, userId })
     q.notify({ color: 'positive', message: t('users.user_removed'), position: 'top', group: false })
-    await getOwners()
+    await load()
   }
   catch(e){
     console.error(e)
@@ -170,19 +173,23 @@ function jsonToHtmlList(obj: any): string {
   return html
 }
 
-async function getOwners(){
+async function load(){
+  const transcriptionId = route.params.transcriptionId as string
+
   try {
-    owners.value = await trpc.transcriptions.getOwners.query({ transcriptionId: props.transcription.id as string })
+    transcription.value = await trpc.transcriptions.findById.query({ transcriptionId: transcriptionId })
+    owners.value = await trpc.transcriptions.getOwners.query({ transcriptionId: transcriptionId })
   }
-  catch(e){
-    console.error(e)
-    q.notify({ color: 'negative', message: t('misc.error_message'), position: 'top', group: false })
+  catch(err){
+    console.error(err)
+    q.dialog({ title: t('misc.error'), message: t('misc.error_message') })
   }
 }
 
-onMounted(() => {
-  metadatas.value = props.transcription?.metadata ? jsonToHtmlList(JSON.parse(props.transcription.metadata)) :  ''
-  getOwners()
+onMounted(async () => {
+  await load()
+  metadatas.value = transcription.value?.metadata ? jsonToHtmlList(JSON.parse(transcription.value?.metadata)) :  ''
+  loaded.value = true
 })
 
 

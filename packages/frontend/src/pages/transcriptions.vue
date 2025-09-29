@@ -2,7 +2,7 @@
   <q-drawer v-model="store.drawer" :class="store.darkMode ? `bg-dark` : `bg-light`">
     <q-scroll-area class="fit">
       <q-list>
-        <q-item @click="openUploadModal()" clickable v-ripple>
+        <q-item @click="uploaderModal=true" clickable v-ripple>
           <q-item-section>
             <q-item-label>
               <q-icon name="add" /> {{ t('transcription.add_new_transcription') }}
@@ -18,7 +18,7 @@
               WS <q-spinner-radio size="1em" />
           </q-badge>
         </q-item-label>
-        <q-item v-for="(trs, index) of transcriptions" clickable @click="selectTranscription(trs.id as string)" :active="selectedTranscriptionId == trs.id">
+        <q-item v-for="(trs, index) of transcriptions" clickable @click="toPage(trs.id as string, `/${trs.id}`)" :active="trs.id == store.selectedTranscriptionId">
           <q-item-section>
             <q-item-label style="white-space: normal; word-break: break-word;" lines="1">{{ trs.name }}</q-item-label>
             <q-item-label caption lines="1">
@@ -34,10 +34,10 @@
             <q-btn @click.prevent="e => e.stopPropagation()" icon="mdi-dots-vertical" flat round dense>
               <q-menu>
                 <q-list style="min-width: 100px">
-                  <q-item @click="" clickable v-close-popup>
+                  <q-item @click="toPage(trs.id as string, `/${trs.id}/export`)" clickable v-close-popup>
                     <q-item-section>{{ t('transcription.properties_and_metadata.export') }}</q-item-section>
                   </q-item>
-                  <q-item @click="openPropertyAndShare(trs?.id as string)" clickable v-close-popup>
+                  <q-item @click="toPage(trs.id as string, `/${trs.id}/properties`)" clickable v-close-popup>
                     <q-item-section>{{ t('transcription.properties_and_metadata.title') }}</q-item-section>
                   </q-item>
                   <q-item @click="deleteTranscription(trs?.id as string)" clickable v-close-popup>
@@ -88,6 +88,9 @@
 
   <q-page class="q-pa-xs" :style="`${$q.screen.width >= 900 ? `width:900px` : `width:${$q.screen.width}px`};border:0px solid red`">
     
+    <router-view />
+
+    <!--
     <template v-if="mainLoading">
       <div class="row items-center justify-center" style="height: 100%">
         <q-spinner-pie size="50px" color="primary" />
@@ -100,17 +103,14 @@
         <TranscriptionProperties v-if="showPropertiesAndShare" :transcription="selectedTranscription"/>
         <TranscriptionComponent v-else :transcription="selectedTranscription"/>
       </template>
-      
-      
-      
     </template>
-    
+    -->
 
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { type Ref } from 'vue'
 import { whisperStore } from 'stores/WhisperStore'
 import { useI18n } from 'vue-i18n'
@@ -131,12 +131,8 @@ const q: QVueGlobals = useQuasar()
 const { t } = useI18n()
 const store = whisperStore()
 const wsConnected: Ref<boolean> = ref(false)
-const mainLoading: Ref<boolean> = ref(false)
 
 const transcriptions: Ref<Array<Partial<Transcription>>> = ref([])
-const selectedTranscription: Ref<Transcription|null> = ref(null)
-const selectedTranscriptionId: Ref<string|null> = ref(null)
-const showPropertiesAndShare: Ref<boolean> = ref(false)
 
 const uploaderModal: Ref<boolean> = ref(false)
 const langOptions: Array<Record<string, string>> = [
@@ -243,35 +239,12 @@ const langOptions: Array<Record<string, string>> = [
 
 const lang: Ref<Record<string, string>> = ref(langOptions.values[0])
 
-function clear(){
-  selectedTranscriptionId.value = null
-  selectedTranscription.value = null
-  showPropertiesAndShare.value = false
+async function toPage(id: string, path: string){
+  store.setSelectedTranscriptionId(null)
   router.push(`/`)
-}
-
-async function openPropertyAndShare(id: string){
-  showPropertiesAndShare.value = true
-  if (selectedTranscriptionId.value != id)
-    await selectTranscription(id)
-}
-
-async function selectTranscription(id: string){
-  clear()
-  mainLoading.value = true
-  selectedTranscriptionId.value = id
-
-  try {
-    selectedTranscription.value = await trpc.transcriptions.findById.query({ transcriptionId: id })
-    router.push(`/${id}`)
-  } 
-  catch (error) {
-    console.error(error)
-    selectedTranscriptionId.value = null
-    q.notify({ color: 'negative', message: t('misc.error_message'), position: 'top', group: false })
-  }
-  
-  mainLoading.value = false
+  await new Promise(resolve => setTimeout(resolve, 0))
+  store.setSelectedTranscriptionId(id)
+  router.push(path)
 }
 
 function deleteTranscription(id: string){
@@ -286,15 +259,10 @@ function deleteTranscription(id: string){
     await trpc.transcriptions.deleteByTranscriptionId.mutate({ transcriptionId: id })
     transcriptions.value = transcriptions.value.filter(trs => trs.id != id)
 
-    if (id == selectedTranscriptionId.value)
-      clear()
+    if (id == store.getSelectedTranscriptionId())
+      router.push(`/`)
   })
 } 
-
-function openUploadModal(){
-  uploaderModal.value = true
-
-}
 
 function onUploaded(data){
   const transcription: Transcription = JSON.parse(data.xhr.response)
@@ -361,13 +329,29 @@ onMounted(async () => {
 
   // get the transcription id from the route if needed
   const id = route.params.transcriptionId as string | undefined
-  if (id) 
-    selectTranscription(id)
-
+  if (id){
+    toPage(id, `/${id}`)
+  }
+    
   // get the user transcriptions
-  transcriptions.value = await trpc.transcriptions.findByUserId.query({
-    userId: store.getUser().id as string,
-    deleted: false
-  })
+  try {
+    transcriptions.value = await trpc.transcriptions.findByUserId.query({
+      userId: store.getUser().id as string,
+      deleted: false
+    })
+  }
+  catch(err){
+    console.error(err)
+    q.dialog({ title: t('misc.error'), message: t('misc.error_message') })
+    router.push('/') 
+  }
+})
+
+onBeforeUnmount(() => {
+  if (ws){
+    ws.close()
+    ws = null
+  }
+  store.setSelectedTranscriptionId(null)
 })
 </script>

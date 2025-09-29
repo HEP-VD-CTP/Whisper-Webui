@@ -84,6 +84,17 @@ export type TranslationSchema = {
       error: string
     },
     to_top: string,
+    export: {
+      options: string, 
+      show_speakers: string,
+      show_timecodes: string,
+      show_multilines: string, 
+      show_multilines_details: string, 
+      copy: string, 
+      download: string,
+      copied: string,
+      downloaded: string
+    },
     properties_and_metadata: {
       title: string,
       metadatas: string,

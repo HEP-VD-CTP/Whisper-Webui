@@ -90,6 +90,17 @@ const en: TranslationSchema = {
     upload_failed: `Your file upload has failed. Please try again later. and contact support if the problem persists.`,
     upload_rejected: `The file is not supported.`,
     to_top: `To top`,
+    export: {
+      options: `You can choose the export options for your transcription.`,
+      show_speakers: `Show speakers`,
+      show_timecodes: `Show timecodes`,
+      show_multilines: `Show results on multiple lines`,
+      show_multilines_details: `You can choose to display the results on one or multiple lines.`,
+      copy: `Copy to clipboard`,
+      download: `Download TXT file`,
+      copied: `Content copied to clipboard`,
+      downloaded: `Content downloaded to your computer`
+    },
     properties_and_metadata: {
       title: `Properties and sharing`,
       metadatas: `Metadatas`,

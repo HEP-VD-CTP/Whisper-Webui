@@ -113,6 +113,20 @@ export const whisperStore = defineStore('whisper', () => {
     localStorage.setItem('darkMode', JSON.stringify(mode))
   }
 
+  // #############################
+  // # selected transcription ID #
+  // #############################
+  //
+  const selectedTranscriptionId: Ref<string|null> = ref(null)
+
+  function getSelectedTranscriptionId(): string|null {
+    return selectedTranscriptionId.value
+  }
+
+  function setSelectedTranscriptionId(newId: string|null): void {
+    selectedTranscriptionId.value = newId
+  }
+
   return {
     user,
     getUser,
@@ -145,7 +159,11 @@ export const whisperStore = defineStore('whisper', () => {
 
     darkMode,
     getDarkMode,
-    setDarkMode
+    setDarkMode,
+
+    selectedTranscriptionId,
+    getSelectedTranscriptionId,
+    setSelectedTranscriptionId
   }
 })
 

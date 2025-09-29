@@ -1,4 +1,3 @@
-
 import worker from './worker.ts'
 import DAO from '@whisper-webui/lib/src/db/DAO.ts'
 import store from '@whisper-webui/lib/src/db/store.ts'
@@ -28,6 +27,7 @@ console.log(`##########################`)
 
 // get transcription id from the queue one by one and process it
 worker.use(async (id: string) => {
+  // initial status update
   const statusUpdate: StatusUpdate = {
     transcriptionId: id,
     owners: [],
@@ -39,14 +39,13 @@ worker.use(async (id: string) => {
     console.log(`Received ID: ${id}`)
     const transcription: Transcription = await DAO.transcriptions.findById(id)
     
-    statusUpdate.owners = (await DAO.transcriptions.findTrandscriptionOwners(id))
-      .filter(x => x.id !== undefined && x.email !== undefined)
-      .map(x => ({
+    statusUpdate.owners = (await DAO.transcriptions.findTrandscriptionOwners(id)).map(x => ({
         id: typeof x.id === 'string' ? x.id : (x.id instanceof Buffer ? x.id.toString('hex') : ''),
-        email: x.email as string,
+        email: x.email || '',
         firstName: x.firstname || '',
         lastName: x.lastname || ''
       }))
+
     console.log('Transcription:')
     console.log(transcription)
     console.log('Owners:')
@@ -177,12 +176,12 @@ worker.use(async (id: string) => {
     // send status update to all owners
     statusUpdate.status = 'done'
     store.publish('updates', JSON.stringify(statusUpdate))
-
   }
   catch(err){
     console.error(err)
 
     // send status update to all owners
+    statusUpdate.status = 'error'
     store.publish('updates', JSON.stringify(statusUpdate))
     
     // update transcription status to error

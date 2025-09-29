@@ -90,6 +90,17 @@ const fr: TranslationSchema = {
     upload_failed: `Une erreur s'est produite lors de l'envoi du fichier. Si l'erreur persiste, veuillez contacter l'administrateur.`,
     upload_rejected: `Votre fichier a été rejeté.`,
     to_top: `Aller en haut`,
+    export: {
+      options: `Vous pouvez choisir les options d'exportation de votre transcription.`, 
+      show_speakers: `Afficher les speakers`,
+      show_timecodes: `Afficher les timescodes`,
+      show_multilines: `Afficher les résultats sur plusieurs lignes`,
+      show_multilines_details: `Vous pouvez choisir d'afficher les résultats sur une ou plusieurs lignes.`, 
+      copy: `Copier dans le presse-papier`,
+      download: `Télécharger le fichier TXT`,
+      copied: `Le contenu a été copié dans le presse papier`,
+      downloaded: `Le contenu va été téléchargé sur votre ordinateur`
+    },
     properties_and_metadata: {
       title: `Propriétés et partage`,
       metadatas: `Métadonnées`,

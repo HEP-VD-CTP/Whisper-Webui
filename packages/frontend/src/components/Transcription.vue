@@ -1,5 +1,9 @@
 <template>
-  <div>
+  <div v-if="!loaded" class="row items-center justify-center" style="height: 100%">
+    <q-spinner-pie size="50px" color="primary" />
+  </div>
+  <div v-else>
+    <span class="text-weight-bold">{{ transcription.name }}</span> 
     <div class="q-mb-xl" id="editor" v-if="transcription.status == `done`">
       <q-page-sticky position="bottom-right" class="q-mr-xs">
         <q-btn :disabled="!pageScrolled" @click="toTop" round color="pink" icon="arrow_upward">
@@ -72,6 +76,7 @@
   
 <script setup lang="ts">
 import { onMounted, ref, type Ref, nextTick, onBeforeUnmount } from 'vue'
+import { useRoute, useRouter, Router, RouteLocationNormalizedLoaded } from 'vue-router'
 import { whisperStore } from 'stores/WhisperStore'
 import { Transcription, User } from '@whisper-webui/lib/src/types/kysely.ts'
 import { Segment } from '@whisper-webui/lib/src/types/types.ts'
@@ -80,13 +85,15 @@ import { useQuasar, QVueGlobals } from 'quasar'
 import trpc from 'src/lib/trpc'
 import lib from 'src/lib/index'
 
+
 const parser: DOMParser = new DOMParser();
 
 const { t } = useI18n()
 const q: QVueGlobals = useQuasar()
-const props = defineProps<{
-  transcription: Transcription | null
-}>()
+const router: Router = useRouter()
+const route: RouteLocationNormalizedLoaded = useRoute()
+
+const transcription: Ref<Transcription> = ref(null)
 
 const audioPlayer: Ref<HTMLAudioElement> = ref(null)
 
@@ -98,6 +105,7 @@ const updatingTranscription: Ref<boolean> = ref(false)
 const totalAudioDuration: Ref<number> = ref(0)
 const playing: Ref<boolean> = ref(false)
 const pageScrolled: Ref<boolean> = ref(false)
+const loaded: Ref<boolean> = ref(false)
 
 type SegmentHTML = {
   start: number,
@@ -243,9 +251,7 @@ async function handleKeydownElement(e: KeyboardEvent, paragraph: SegmentHTML, pa
 
 let updateTimeout: any = undefined;
 function triggerTranscriptionUpdate(){
-  
   console.log(`TRIGGER UPDATE`);
-
   if (updateTimeout)
     clearTimeout(updateTimeout);
 
@@ -303,7 +309,7 @@ function triggerTranscriptionUpdate(){
     try {
       // now we make the actual update to the server
       await trpc.transcriptions.updateTranscription.mutate({
-        transcriptionId: props.transcription.id as string,
+        transcriptionId: transcription.value.id as string,
         data: newData
       })
     }
@@ -328,7 +334,8 @@ function toTop(){
 
 function play(){
   playing.value = true;  
-  /*await*/ audioPlayer.value.play()
+  if (audioPlayer.value) 
+    /*await*/ audioPlayer.value.play()
 }
 
 function pause(){
@@ -368,10 +375,21 @@ function pasting(e: ClipboardEvent): void {
   e.preventDefault();
 }
 
-onMounted(() => {
+onMounted(async () => {
+  const transcriptionId = route.params.transcriptionId as string
+
+  try {
+    transcription.value = await trpc.transcriptions.findById.query({ transcriptionId: transcriptionId })
+    loaded.value = true
+  }
+  catch(err){
+    console.error(err)
+    q.dialog({ title: t('misc.error'), message: t('misc.error_message') })
+  }
+
   window.addEventListener(`scroll`, scrollHanler)
 
-  audioUrl.value = `https://${store.getDomain()}/api/audio/${props.transcription.id}/${props.transcription.file}`
+  audioUrl.value = `https://${store.getDomain()}/api/audio/${transcription.value.id}/${transcription.value.file}`
 
   nextTick(() => {
     if (audioPlayer.value)
@@ -391,9 +409,9 @@ onMounted(() => {
     }, 200)
     audioPlayer.value.addEventListener('loadedmetadata', _ => totalAudioDuration.value = audioPlayer.value.duration)
     audioPlayer.value.addEventListener('ended', _ => pause())
-  });
+  })
 
-  const parsedSegments: Array<Segment> = JSON.parse(props.transcription.text)
+  const parsedSegments: Array<Segment> = JSON.parse(transcription.value.text)
 
   for (const segment of parsedSegments) {
     segments.value.push({
@@ -403,12 +421,16 @@ onMounted(() => {
       words: segment.words.map(word => `<span class="" start="${word.start}" end="${word.end}">${word.word}</span>`).join(` `)
     })
   }
-
-
 })
+
 onBeforeUnmount(() => {
-  pause()
-  window.removeEventListener(`scroll`, scrollHanler)
+  try {
+    pause()
+    window.removeEventListener(`scroll`, scrollHanler)
+  }
+  catch(e){
+    console.error(e)
+  }
 })
 
 </script>
