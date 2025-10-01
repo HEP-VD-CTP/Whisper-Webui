@@ -9,7 +9,6 @@ import { BadRequestException, ForbiddenException, NotFoundException, Unauthorize
 
 import { Context } from 'src/trpc/context.ts'
 import { User } from '@whisper-webui/lib/src/types/kysely.ts'
-import { searchTranscriptions } from '@whisper-webui/lib/src/db/transcriptionDAO.ts'
 
 const idZodValidation = z.string().refine((val) => {
   // id must be 24 length string
@@ -169,11 +168,16 @@ const usersRouter = t.router({
 
   // full-text search a user
   search: adminProcedure
-  //.input(z.string().min(1).max(255))
-  .input(z.object({ term: z.string().min(1).max(255) }))
+  .input(z.object({
+    term: z.string().min(1).max(255),
+    page: z.number().int().min(1),
+    pageSize: z.number().int().min(1).max(100),
+  }))
   .query(async opts => {
     const term = opts.input.term.trim().replace(/\s+/g, ` `)
-    const users = term == '*' ? await DAO.users.findAll() : await DAO.users.searchUsers(term)
+    const users = term == '*' 
+      ? await DAO.users.findAll(opts.input.page, opts.input.pageSize)
+      : await DAO.users.searchUsers(term, opts.input.page, opts.input.pageSize)
     for (const user of users){
       delete user['pwd']
       delete user['salt']

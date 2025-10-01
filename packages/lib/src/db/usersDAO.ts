@@ -11,7 +11,7 @@ import {
   type InsertUser,
 } from '@whisper-webui/lib/src/types/kysely.ts'
 import { type UsersStats } from '@whisper-webui/lib/src/types/types.ts'
-import { sql } from 'kysely'
+import { sql, SqlBool } from 'kysely'
 import crypto from 'node:crypto'
 
 function genSalt(): string {
@@ -22,12 +22,15 @@ function sign(password: string, salt: string){
   return crypto.createHash(`sha512`).update(`${password}${salt}`).digest(`hex`)
 }
 
-export async function findAll(): Promise<Array<User>> {
+export async function findAll(page: number = 1, pageSize: number = 25): Promise<Array<User>> {
+  const offset = (page - 1) * pageSize
   return await db.selectFrom('users')
     .selectAll()
     .orderBy('firstname', 'asc')
     .orderBy('lastname', 'asc')
     .orderBy('email', 'asc')
+    .limit(pageSize)
+    .offset(offset)
     .execute();
 }
 
@@ -106,13 +109,19 @@ export async function stats(): Promise<UsersStats> {
   }
 }
 
-export async function searchUsers(term: string): Promise<Array<User>> {
+export async function searchUsers(term: string, page: number = 1, pageSize: number = 25): Promise<Array<User>> {
+  const offset = (page - 1) * pageSize
   return await db.selectFrom('users')
     .selectAll()
-    .where((eb) => sql`MATCH(firstname, lastname, email) AGAINST (${term})`)
+    .where(sql<SqlBool>`
+      MATCH(firstname, lastname, email) AGAINST (${term})
+      OR id = ${typeof term === 'string' ? Buffer.from(term, 'hex') : term}
+    `)
     .orderBy('firstname', 'asc')
     .orderBy('lastname', 'asc')
     .orderBy('email', 'asc')
+    .limit(pageSize)
+    .offset(offset)
     .execute()
 }
 

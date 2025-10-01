@@ -1,5 +1,5 @@
 <template>
-    <q-drawer v-model="store.drawer" :class="store.darkMode ? `bg-dark` : `bg-light`">
+  <q-drawer v-model="store.drawer" :class="store.darkMode ? `bg-dark` : `bg-light`">
     <q-scroll-area class="fit">
       <div>
         <q-input v-model="transcriptionSearched" debounce="500" filled type="search" :label="t('admin_transcriptions.search')" class="q-mt-sm">

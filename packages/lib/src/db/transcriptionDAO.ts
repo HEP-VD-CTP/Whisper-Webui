@@ -60,7 +60,7 @@ export async function findByUserId(userId: string | Buffer): Promise<Array<Parti
     .execute()
 }
 
-export async function findAll(page: number = 1, pageSize: number = 20) {
+export async function findAll(page: number = 1, pageSize: number = 25) {
   const offset = (page - 1) * pageSize
 
   return await db
@@ -88,7 +88,7 @@ export async function findAll(page: number = 1, pageSize: number = 20) {
     .execute()
 }
 
-export async function searchTranscriptions(term: string, page: number = 1, pageSize: number = 20) {
+export async function searchTranscriptions(term: string, page: number = 1, pageSize: number = 25) {
   const offset = (page - 1) * pageSize
 
   return await db
