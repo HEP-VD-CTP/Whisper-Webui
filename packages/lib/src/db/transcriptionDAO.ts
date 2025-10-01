@@ -13,7 +13,15 @@ import {
   InsertTranscriptionUser,
   User
 } from '@whisper-webui/lib/src/types/kysely.ts'
+import { sql, SqlBool } from 'kysely'
 import lib from '@whisper-webui/lib/src/lib/index.ts'
+
+export async function countAll(): Promise<number> {
+  return await db.selectFrom('transcriptions')
+    .select(sql<number>`COUNT(*)`.as('count'))
+    .executeTakeFirst()
+    .then(r => r ? r.count : 0)
+}
 
 export async function findById(id: string | Buffer): Promise<Transcription> {
   if (typeof id === 'string')
@@ -49,6 +57,67 @@ export async function findByUserId(userId: string | Buffer): Promise<Array<Parti
     .innerJoin('transcriptions_users', 'transcriptions.id', 'transcriptions_users.idx_transcription')
     .where('transcriptions_users.idx_user', '=', userId)
     .orderBy('transcriptions.created', 'desc')
+    .execute()
+}
+
+export async function findAll(page: number = 1, pageSize: number = 20) {
+  const offset = (page - 1) * pageSize
+
+  return await db
+    .selectFrom('transcriptions as t')
+    .innerJoin('transcriptions_users as tu', 'tu.idx_transcription', 't.id')
+    .innerJoin('users as u', 'tu.idx_user', 'u.id')
+    .select([
+      't.id',
+      't.name',
+      't.file',
+      't.lang',
+      't.status',
+      't.created',
+      't.processed',
+      't.done',
+      't.deleted',
+      sql<Array<string>>`JSON_ARRAYAGG(u.email)`.as('emails'),
+    ])
+    .groupBy([
+      't.id', 't.name', 't.file', 't.lang', 't.status', 't.created', 't.processed', 't.done', 't.deleted',
+    ])
+    .orderBy('t.created', 'desc')
+    .limit(pageSize)
+    .offset(offset)
+    .execute()
+}
+
+export async function searchTranscriptions(term: string, page: number = 1, pageSize: number = 20) {
+  const offset = (page - 1) * pageSize
+
+  return await db
+    .selectFrom('transcriptions as t')
+    .innerJoin('transcriptions_users as tu', 'tu.idx_transcription', 't.id')
+    .innerJoin('users as u', 'tu.idx_user', 'u.id')
+    .select([
+      't.id',
+      't.name',
+      't.file',
+      't.lang',
+      't.status',
+      't.created',
+      't.processed',
+      't.done',
+      't.deleted',
+      sql<Array<string>>`JSON_ARRAYAGG(u.email)`.as('emails'),
+    ])
+    .where(sql<SqlBool>`
+      MATCH(t.name) AGAINST (${term} IN NATURAL LANGUAGE MODE)
+      OR MATCH(u.email, u.firstname, u.lastname) AGAINST (${term} IN NATURAL LANGUAGE MODE)
+      OR t.id = ${typeof term === 'string' ? Buffer.from(term, 'hex') : term}
+    `)
+    .groupBy([
+      't.id', 't.name', 't.file', 't.lang', 't.status', 't.created', 't.processed', 't.done', 't.deleted',
+    ])
+    .orderBy('t.created', 'desc')
+    .limit(pageSize)
+    .offset(offset)
     .execute()
 }
 
@@ -146,8 +215,11 @@ export async function findTrandscriptionOwners(id: string | Buffer): Promise<Arr
 }
 
 export default {
+  countAll,
   findById,
   findByUserId,
+  findAll,
+  searchTranscriptions,
   findTrandscriptionOwners,
   addOwner,
   removeOwner,

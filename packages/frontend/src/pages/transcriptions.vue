@@ -87,25 +87,7 @@
   </q-dialog>
 
   <q-page class="q-pa-xs" :style="`${$q.screen.width >= 900 ? `width:900px` : `width:${$q.screen.width}px`};border:0px solid red`">
-    
     <router-view />
-
-    <!--
-    <template v-if="mainLoading">
-      <div class="row items-center justify-center" style="height: 100%">
-        <q-spinner-pie size="50px" color="primary" />
-      </div>
-    </template>
-    <template v-else>
-      <WhisperLanding v-if="selectedTranscriptionId == null" />
-      <template v-else>
-        <span class="text-weight-bold">{{ selectedTranscription.name }}</span> 
-        <TranscriptionProperties v-if="showPropertiesAndShare" :transcription="selectedTranscription"/>
-        <TranscriptionComponent v-else :transcription="selectedTranscription"/>
-      </template>
-    </template>
-    -->
-
   </q-page>
 </template>
 
@@ -251,7 +233,7 @@ function deleteTranscription(id: string){
   q.dialog({
     title: t('transcription.delete.title'),
     message: t('transcription.delete.message'),
-    ok: { label: t('misc.delete') },
+    ok: { label: t('misc.delete'), flat: true },
     cancel: { label: t('misc.cancel'), flat: true },
     persistent: true
   })

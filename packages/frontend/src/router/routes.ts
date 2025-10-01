@@ -45,11 +45,38 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/MainLayout.vue'),
     children: [{ path: '', component: () => import('pages/Logout.vue') }],
   },
-
   {
     path: '/users',
     component: () => import('layouts/MainLayout.vue'),
     children: [{ path: '', component: () => import('pages/Users.vue') }],
+  },
+  {
+    path: '/transcriptions',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      { 
+        path: '', 
+        component: () => import('pages/AdminTranscriptions.vue'),
+        children: [
+          {
+            path: '',
+            component: () => import('components/TranscriptionsStats.vue'),
+          },
+          {
+            path: ':transcriptionId',
+            component: () => import('components/Transcription.vue'),
+          },
+          {
+            path: ':transcriptionId/properties',
+            component: () => import('components/TranscriptionProperties.vue'),
+          },
+          {
+            path: ':transcriptionId/export',
+            component: () => import('components/ExportTranscription.vue'),
+          },
+        ],
+      },
+    ],
   },
 
   // Always leave this as last one,

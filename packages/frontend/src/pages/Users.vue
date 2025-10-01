@@ -1,4 +1,7 @@
 <template>
+
+
+
   <q-page style="border:0px solid red;width:100%" class="full-height">
     <q-splitter style="height:calc(100vh - 50px)" v-model="splitterPosition" separator-style="width:3px">
 
@@ -56,6 +59,7 @@
             <p class="q-mt-md">
               {{ $t('users.stats') }}:<br/><br/>
               {{ $t('users.total') }}: {{ stats.total }}<br/>
+              {{ $t('users.active') }}: {{ stats.total - stats.archived - stats.blocked }}<br/>
               {{ $t('users.archived') }}: {{ stats.archived }}<br/>
               {{ $t('users.blocked') }}: {{ stats.blocked }}
             </p>
@@ -390,6 +394,9 @@ onBeforeMount(async () => {
 })
 
 onMounted(() => {
+  if (!store.user.admin)
+    return router.push('/')
+  
   document.title = `${t('users.users')} - ${store.getTitle()}`
 })
 

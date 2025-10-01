@@ -17,12 +17,20 @@
           </template>
           <template v-else>
             <q-btn-dropdown flat no-caps :label="store.user.email">
-              <q-item clickable v-close-popup @click="router.push(`/users`)">
+              <q-item v-if="store.user.admin" clickable v-close-popup @click="router.push(`/users`)">
                 <q-item-section>
                   <q-item-label>{{ $t('users.users') }}</q-item-label>
                 </q-item-section>
                 <q-item-section side>
                   <q-icon name="groups" />
+                </q-item-section>
+              </q-item>
+              <q-item v-if="store.user.admin" clickable v-close-popup @click="router.push(`/transcriptions`)">
+                <q-item-section>
+                  <q-item-label>{{ $t('transcription.transcriptions') }}</q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-icon name="mdi-file-multiple" />
                 </q-item-section>
               </q-item>
               <q-item clickable v-close-popup @click="settingsSelector=true">

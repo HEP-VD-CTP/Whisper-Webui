@@ -18,7 +18,8 @@ export type TranslationSchema = {
     settings: string,
     created_at: string,
     wrong_input: string,
-    error_message: string
+    error_message: string,
+    load_more: string,
   },
   user: {
     firstname: string, 
@@ -30,6 +31,7 @@ export type TranslationSchema = {
     users: string
   },
   users: {
+    active: string,
     admin_role: {
       title: string,
       description: string
@@ -61,6 +63,10 @@ export type TranslationSchema = {
     users: string,
     use_filter: string,
     no_results: string
+  },
+  admin_transcriptions: {
+    search: string,
+    instructions: string
   },
   transcription: {
     delete: {
@@ -109,8 +115,11 @@ export type TranslationSchema = {
         processed: string,
         done: string,
         add_user_label: string,
-      }
-    }
+      },
+    },
+    waiting: string,
+    processing: string,
+    error: string
   },
   validation: {
     name: {

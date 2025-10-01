@@ -20,7 +20,8 @@ const en: TranslationSchema = {
     settings: `Settings`,
     created_at: `Created at`,
     wrong_input: `Wrong input`,
-    error_message: `An error has occurred. Please try again later and contact support if the problem persists.`
+    error_message: `An error has occurred. Please try again later and contact support if the problem persists.`,
+    load_more: `Load more`,
   },
   user: {
     firstname: `Firstname`,
@@ -32,6 +33,7 @@ const en: TranslationSchema = {
     users: `Users`
   },
   users: {
+    active: `Active`,
     admin_role: {
       title: `Admin role`,
       description: `Admin role allows the user to fully manage the application`
@@ -67,6 +69,14 @@ const en: TranslationSchema = {
     users: `Users`,
     use_filter: `Please use the filter`,
     no_results: `No results`,
+  },
+  admin_transcriptions: {
+    search: `Find a transcription`,
+    instructions: `
+      Welcome to the transcriptions management page.<br/><br/>
+      Use the search bar to find transcriptions.<br/>
+      Type <b>'*'</b> to retrieve all transcriptions or enter a specific term to filter the results.<br/><br/>
+      You can add a new transcription using the <b>'+ Add Transcription'</b> button on the left panel.`,
   },
   transcription: {
     delete: {
@@ -116,7 +126,10 @@ const en: TranslationSchema = {
         done: "Date done",
         add_user_label: "Enter the email address of an already registered user to add them to your transcription."
       }
-    }
+    },
+    waiting: `Your file is in the processing queue and will be processed as soon as possible.`,
+    processing: `Your file is being processed and you will be notified once it is complete.`,
+    error: `An error occurred while processing your file. Please try again later and contact support if the problem persists.`
   },
   validation: {  
     name: {

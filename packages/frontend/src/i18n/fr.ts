@@ -20,7 +20,8 @@ const fr: TranslationSchema = {
     settings: `Paramètres`,
     created_at: `Créé le`,
     wrong_input: `Mauvaise entrée`,
-    error_message: `Une erreur s'est produite. Veuillez réessayer plus tard et contacter le support si le problème persiste.`
+    error_message: `Une erreur s'est produite. Veuillez réessayer plus tard et contacter le support si le problème persiste.`,
+    load_more: `Charger plus`,
   },
   user: {
     firstname: `Prénom`,
@@ -32,6 +33,7 @@ const fr: TranslationSchema = {
     users: `Utilisateurs`
   },
   users: {
+    active: `Actifs`,
     admin_role: {
       title: `Rôle administrateur`,
       description: `Le rôle administrateur permet à l'utilisateur de gérer pleinement l'application`
@@ -67,6 +69,14 @@ const fr: TranslationSchema = {
     users: `Utilisateurs`,
     use_filter: `Veuillez utiliser le filtre`,
     no_results: `Aucun résultat`,
+  },
+  admin_transcriptions: {
+    search: "Chercher une transcription",
+    instructions: `
+      Bienvenue sur la page de gestion des transcriptions.<br/><br/>
+      Utilisez la barre de recherche pour trouver des transcriptions.<br/>
+      Tapez <b>'*'</b> pour récupérer toutes les transcriptions ou entrez un terme spécifique pour filtrer les résultats.<br/><br/>
+      Vous pouvez voir les détails d'une transcription en cliquant dessus dans le panneau de gauche.`,
   },
   transcription: {
     delete: {
@@ -115,8 +125,11 @@ const fr: TranslationSchema = {
         processed: "Date de traitement",
         done: "Date de fin",
         add_user_label: "Entrez l'adresse email d'un utilisateur déjà inscrit pour l'ajouter à votre transcription."
-      }
-    }
+      },
+    },
+    waiting: `Votre fichier est en liste d'attente et sera traité dès que possible.`,
+    processing: `Votre fichier est en cours de traitement et vous serez notifié une fois terminé.`,
+    error: `Une erreur est survenue lors du traitement de votre fichier. Veuillez réessayer plus tard et contacter le support si le problème persiste.`
   },
   validation: {
     name: {

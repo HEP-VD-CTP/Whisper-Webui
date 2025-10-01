@@ -132,18 +132,26 @@ worker.use(async (id: string) => {
         speaker: x.speaker
       }
     })
-    
-    // ensure first word has start/end
+
+    // ensure first word has start/end and a speaker
     if (words.length) {
-      if (!words[0].start) words[0].start = 0
-      if (!words[0].end) words[0].end = 0.1
+      if (!words[0].start) 
+        words[0].start = 0
+      if (!words[0].end) 
+        words[0].end = 0.1
+      if (!words[0].speaker) 
+        words[0].speaker = 'UNKNOWN_SPEAKER'
     }
-    // ensure all words have start/end
+    // ensure all words have start/end and a speaker
     for (let i = 1; i < words.length; i++) {
-      if (!words[i].start) words[i].start = words[i-1].start
-      if (!words[i].end) words[i].end = words[i-1].end
+      if (!words[i].start) 
+        words[i].start = words[i-1].start
+      if (!words[i].end) 
+        words[i].end = words[i-1].end
+      if (!words[i].speaker) 
+        words[i].speaker = words[i-1].speaker
     }
-    
+
     // group consecutive words by speaker
     const segments: Array<Segment> = []
     let currentSegment: Segment|null = null

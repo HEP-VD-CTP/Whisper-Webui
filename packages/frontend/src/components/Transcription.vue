@@ -2,47 +2,59 @@
   <div v-if="!loaded" class="row items-center justify-center" style="height: 100%">
     <q-spinner-pie size="50px" color="primary" />
   </div>
+  <div v-else-if="transcription.status == 'processing'" class="row items-center text-center justify-center" style="height: 100%">
+    <h6><q-icon name="mdi-cogs" /> {{ t('transcription.processing') }}</h6>
+  </div>
+  <div v-else-if="transcription.status == 'waiting'" class="row items-center text-center justify-center" style="height: 100%">
+    <h6><q-icon name="mdi-timer-sand" /> {{ t('transcription.waiting') }}</h6>
+  </div>
+  <div v-else-if="transcription.status == 'error'" class="row items-center text-center justify-center" style="height: 100%">
+    <h6><q-icon name="mdi-timer-sand" /> {{ t('transcription.error') }}</h6>
+  </div>
   <div v-else>
     <span class="text-weight-bold">{{ transcription.name }}</span> 
-    <div class="q-mb-xl" id="editor" v-if="transcription.status == `done`">
-      <q-page-sticky position="bottom-right" class="q-mr-xs">
-        <q-btn :disabled="!pageScrolled" @click="toTop" round color="pink" icon="arrow_upward">
-          <q-tooltip anchor="center left" self="center right">{{ t('transcription.to_top') }}</q-tooltip>
-        </q-btn>
-      </q-page-sticky>
+    <div>
+      <div class="q-mb-xl" id="editor" v-if="transcription.status == `done`">
+        <q-page-sticky position="bottom-right" class="q-mr-xs">
+          <q-btn :disabled="!pageScrolled" @click="toTop" round color="pink" icon="arrow_upward">
+            <q-tooltip anchor="center left" self="center right">{{ t('transcription.to_top') }}</q-tooltip>
+          </q-btn>
+        </q-page-sticky>
 
-      <div 
-        v-for="(segment, segIdx) in segments" :key="segIdx"
-        :style="`border-left: 3px solid ${currentAudioPosition >= segment.start && currentAudioPosition <= segment.end ? `#e91e63` : currentAudioPosition > segment.start ? `#f48fb1` : `grey`}`" 
-        class="q-mt-md q-pl-xs">
+        <div 
+          v-for="(segment, segIdx) in segments" :key="segIdx"
+          :style="`border-left: 3px solid ${currentAudioPosition >= segment.start && currentAudioPosition <= segment.end ? `#e91e63` : currentAudioPosition > segment.start ? `#f48fb1` : `grey`}`" 
+          class="q-mt-md q-pl-xs">
+          
+          <q-input 
+            v-model="segment.speaker"
+            class="q-mb-lg q-pa-none"
+            @update:model-value="triggerTranscriptionUpdate" 
+            maxlength="2048" 
+            dense 
+            standout 
+            label="Speaker" 
+            :hint="`${secondsToTime(segment.start)} - ${secondsToTime(segment.end)}`">
+            <template v-slot:prepend>
+              <q-icon size="sm" name="record_voice_over" />
+            </template>
+          </q-input>
+
+          <q-editor 
+            v-model="segment.words"
+            @paste="pasting($event)"
+            @click="updateAudioPosHTML($event)"
+            @keydown="handleKeydownElement($event, segment, segIdx)"
+            :toolbar="[]"
+            flat
+            minHeight="1em"
+            class="q-mt-lg"
+          /> 
+
+        </div>
         
-        <q-input 
-          v-model="segment.speaker"
-          class="q-mb-lg q-pa-none"
-          @update:model-value="triggerTranscriptionUpdate" 
-          maxlength="2048" 
-          dense 
-          standout 
-          label="Speaker" 
-          :hint="`${secondsToTime(segment.start)} - ${secondsToTime(segment.end)}`">
-          <template v-slot:prepend>
-            <q-icon size="sm" name="record_voice_over" />
-          </template>
-        </q-input>
-
-        <q-editor 
-          v-model="segment.words"
-          @paste="pasting($event)"
-          @click="updateAudioPosHTML($event)"
-          @keydown="handleKeydownElement($event, segment, segIdx)"
-          :toolbar="[]"
-          flat
-          minHeight="1em"
-          class="q-mt-lg"
-        /> 
-
       </div>
-      
+
     </div>
 
     <!-- audio player -->
@@ -340,7 +352,8 @@ function play(){
 
 function pause(){
   playing.value = false
-  audioPlayer.value.pause()
+  if (audioPlayer.value)
+    audioPlayer.value.pause()
 }
 
 function updateAudioPosHTML(e: MouseEvent){
@@ -387,6 +400,10 @@ onMounted(async () => {
     q.dialog({ title: t('misc.error'), message: t('misc.error_message') })
   }
 
+  // early stop if the transcription is not done
+  if (transcription.value.status != `done`)
+    return
+
   window.addEventListener(`scroll`, scrollHanler)
 
   audioUrl.value = `https://${store.getDomain()}/api/audio/${transcription.value.id}/${transcription.value.file}`
@@ -424,13 +441,8 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
-  try {
-    pause()
-    window.removeEventListener(`scroll`, scrollHanler)
-  }
-  catch(e){
-    console.error(e)
-  }
+  pause()
+  window.removeEventListener(`scroll`, scrollHanler)
 })
 
 </script>
