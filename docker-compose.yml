@@ -146,4 +146,25 @@ services:
       - whisper_network
     command: npm run dev
 
+  jobs:
+    container_name: whisper-webui-jobs
+    build:
+      context: .
+      dockerfile: ./packages/jobs/Dockerfile
+      target: ${WHISPER_WEBUI_ENV}
+    environment:
+      - NODE_ENV=${WHISPER_WEBUI_ENV}
+      - MYSQL_URL=${MYSQL_URL}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - ${WHISPER_WEBUI_VOLUME_PATH}/logs:/data/logs
+      - ./packages/jobs:/app_dev/packages/jobs
+      - ./packages/lib:/app_dev/packages/lib
+    networks:
+      - whisper_network
+    command: npm run dev
+
 

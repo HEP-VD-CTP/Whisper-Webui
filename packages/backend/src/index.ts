@@ -65,8 +65,12 @@ app.register(fastifyTRPCPlugin, {
 // handle all incoming requests
 app.addHook('preHandler', async (request, reply) => {
   const headers = request.headers
-  const ip = request.headers['x-forwarded-for']?.toString() || request.headers['x-real-ip']?.toString() || ''
   const route = ((request as any).routerPath || request.url).split(`?`)[0]
+  const ip = 
+    request.headers['x-forwarded-for']?.toString() ||
+    request.headers['x-real-ip']?.toString() ||
+    request.ip || 
+    (request.socket as any)?.remoteAddress || ''
 
   let user: User | null = null
   try {
@@ -78,13 +82,15 @@ app.addHook('preHandler', async (request, reply) => {
     method: request.method,
     userid: user ? user.id.toString() : '',
     ip: ip,
-    headers: JSON.stringify(headers)
+    headers: JSON.stringify(headers),
+    duration: Date.now()
   } as ExternalQuery
 })
 
 app.addHook('onResponse', async (request, reply) => {
   const extQuery = (request as any).externalQuery as ExternalQuery
   extQuery.status = reply.statusCode
+  extQuery.duration = Date.now() - extQuery.duration
   store.enqueue('queries', JSON.stringify(extQuery))
 })
 

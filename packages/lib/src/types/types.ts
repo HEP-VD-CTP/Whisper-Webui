@@ -34,5 +34,6 @@ export type ExternalQuery = {
   userid: string,
   ip: string, 
   headers: string,
-  status?: number
+  status?: number,
+  duration: number
 }

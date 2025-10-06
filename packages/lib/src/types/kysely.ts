@@ -69,7 +69,8 @@ export interface QueriesTable {
   ip: string, 
   headers: string, 
   status: number,
-  duration: number
+  duration: number,
+  created: Date
 }
 
 export type Query = Selectable<QueriesTable>
