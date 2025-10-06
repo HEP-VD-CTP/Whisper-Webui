@@ -27,3 +27,12 @@ export type StatusUpdate = {
     email: string
   }>
 }
+
+export type ExternalQuery = {
+  route: string,
+  method: string,
+  userid: string,
+  ip: string, 
+  headers: string,
+  status?: number
+}

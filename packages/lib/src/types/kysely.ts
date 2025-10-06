@@ -11,6 +11,7 @@ export interface Database {
   users: UsersTable
   transcriptions: TranscriptionsTable
   transcriptions_users: TranscriptionUsersTable
+  queries: QueriesTable
 }
 
 export interface UsersTable {
@@ -59,6 +60,21 @@ export interface TranscriptionUsersTable {
 export type TranscriptionUser = Selectable<TranscriptionUsersTable>
 export type InsertTranscriptionUser = Insertable<TranscriptionUsersTable>
 export type UpdateTranscriptionUser = Updateable<TranscriptionUsersTable>
+
+export interface QueriesTable {
+  id: string | Buffer,
+  route: string, 
+  method: string, 
+  userid: string, 
+  ip: string, 
+  headers: string, 
+  status: number,
+  duration: number
+}
+
+export type Query = Selectable<QueriesTable>
+export type InsertQuery = Insertable<QueriesTable>
+export type UpdateQuery = Updateable<QueriesTable>
 
 export default {
 

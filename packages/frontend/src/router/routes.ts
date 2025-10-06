@@ -27,55 +27,49 @@ const routes: RouteRecordRaw[] = [
           },
         ],
       },
-      
-    ],
-  },
-  {
-    path: '/login',
-    component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('pages/LoginPage.vue') }],
-  },
-  {
-    path: '/expired',
-    component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('pages/Expired.vue') }],
-  },
-  {
-    path: '/logout',
-    component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('pages/Logout.vue') }],
-  },
-  {
-    path: '/users',
-    component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('pages/Users.vue') }],
-  },
-  {
-    path: '/transcriptions',
-    component: () => import('layouts/MainLayout.vue'),
-    children: [
-      { 
-        path: '', 
-        component: () => import('pages/AdminTranscriptions.vue'),
+      {
+        path: '/login',
+        children: [{ path: '', component: () => import('pages/LoginPage.vue') }],
+      },
+      {
+        path: '/expired',
+        children: [{ path: '', component: () => import('pages/Expired.vue') }],
+      },
+      {
+        path: '/logout',
+        children: [{ path: '', component: () => import('pages/Logout.vue') }],
+      },
+      {
+        path: '/users',
+        children: [{ path: '', component: () => import('pages/Users.vue') }],
+      },
+      {
+        path: '/transcriptions',
         children: [
-          {
-            path: '',
-            component: () => import('components/TranscriptionsStats.vue'),
-          },
-          {
-            path: ':transcriptionId',
-            component: () => import('components/Transcription.vue'),
-          },
-          {
-            path: ':transcriptionId/properties',
-            component: () => import('components/TranscriptionProperties.vue'),
-          },
-          {
-            path: ':transcriptionId/export',
-            component: () => import('components/ExportTranscription.vue'),
+          { 
+            path: '', 
+            component: () => import('pages/AdminTranscriptions.vue'),
+            children: [
+              {
+                path: '',
+                component: () => import('components/TranscriptionsStats.vue'),
+              },
+              {
+                path: ':transcriptionId',
+                component: () => import('components/Transcription.vue'),
+              },
+              {
+                path: ':transcriptionId/properties',
+                component: () => import('components/TranscriptionProperties.vue'),
+              },
+              {
+                path: ':transcriptionId/export',
+                component: () => import('components/ExportTranscription.vue'),
+              },
+            ],
           },
         ],
-      },
+      }
     ],
   },
 

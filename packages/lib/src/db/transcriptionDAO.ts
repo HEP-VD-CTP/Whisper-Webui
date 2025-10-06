@@ -108,9 +108,9 @@ export async function searchTranscriptions(term: string, page: number = 1, pageS
       sql<Array<string>>`JSON_ARRAYAGG(u.email)`.as('emails'),
     ])
     .where(sql<SqlBool>`
-      MATCH(t.name) AGAINST (${term} IN NATURAL LANGUAGE MODE)
+      t.id = ${typeof term === 'string' ? Buffer.from(term, 'hex') : term}
+      OR MATCH(t.name) AGAINST (${term} IN NATURAL LANGUAGE MODE)
       OR MATCH(u.email, u.firstname, u.lastname) AGAINST (${term} IN NATURAL LANGUAGE MODE)
-      OR t.id = ${typeof term === 'string' ? Buffer.from(term, 'hex') : term}
     `)
     .groupBy([
       't.id', 't.name', 't.file', 't.lang', 't.status', 't.created', 't.processed', 't.done', 't.deleted',

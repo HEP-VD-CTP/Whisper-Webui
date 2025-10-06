@@ -211,7 +211,7 @@ function setLanguage(lang: string): void{
 onBeforeMount(async () => { 
   if (store.user == null && router.currentRoute.value.path != '/expired')
     router.push('/login')
-
+    
   // if the language is null, we try to detect the user language
   if (!store.getLanguage()) {
     const languages = navigator.languages || [navigator.language]
@@ -228,14 +228,12 @@ onBeforeMount(async () => {
   }
   else 
     store.setDarkMode(store.getDarkMode())
-
-
-});
+})
 
 onMounted(() => {
   q.dark.set(store.getDarkMode())
   loaded.value = true
-});
+})
  
 
 </script>

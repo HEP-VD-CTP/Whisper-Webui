@@ -65,7 +65,7 @@
 
     <!-- Player -->
     <q-footer class="row justify-center bg-transparent">
-      <div class="bg-dark shadow-5 q-pt-sm q-pb-sm q-pl-md q-pr-md" :style="`border:0px solid green;${q.screen.width >= 900 ? `width:900px` : `width:${q.screen.width}px`}`">
+      <div :class="`${store.darkMode ? 'text-white bg-dark-page' : 'text-black bg-white'} shadow-5 q-pt-sm q-pb-sm q-pl-md q-pr-md`" :style="`border:0px solid green;${q.screen.width >= 900 ? `width:900px` : `width:${q.screen.width}px`}`">
         <q-slider v-model="currentAudioPosition" @update:model-value="updateAudioPos" :min="0" :max="totalAudioDuration" color="pink"/>
 
         <div class="row">
@@ -450,6 +450,7 @@ onBeforeUnmount(() => {
 <style setup>
 .highlight {
   background-color: #e91e63;
+  color:white;
 }
 
 </style>

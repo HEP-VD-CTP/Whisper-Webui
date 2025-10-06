@@ -30,6 +30,7 @@ import {
 import lib from '@whisper-webui/lib/src/lib/index.ts'
 import DAO from '@whisper-webui/lib/src/db/DAO.ts'
 import { User } from '@whisper-webui/lib/src/types/kysely.ts'
+import { type ExternalQuery } from '@whisper-webui/lib/src/types/types.ts'
 
 
 const PORT: number = 9000
@@ -60,8 +61,32 @@ app.register(fastifyTRPCPlugin, {
   } satisfies FastifyTRPCPluginOptions<AppRouter>['trpcOptions'],
 })
 
-app.addHook('preHandler', async (request, reply) => {})
-app.addHook('onResponse', async (request, reply) => {})
+
+// handle all incoming requests
+app.addHook('preHandler', async (request, reply) => {
+  const headers = request.headers
+  const ip = request.headers['x-forwarded-for']?.toString() || request.headers['x-real-ip']?.toString() || ''
+  const route = ((request as any).routerPath || request.url).split(`?`)[0]
+
+  let user: User | null = null
+  try {
+    user = await checkSession(request.headers.cookie || '')
+  } catch (error) {}
+
+  (request as any).externalQuery = {
+    route: route,
+    method: request.method,
+    userid: user ? user.id.toString() : '',
+    ip: ip,
+    headers: JSON.stringify(headers)
+  } as ExternalQuery
+})
+
+app.addHook('onResponse', async (request, reply) => {
+  const extQuery = (request as any).externalQuery as ExternalQuery
+  extQuery.status = reply.statusCode
+  store.enqueue('queries', JSON.stringify(extQuery))
+})
 
 async function checkSession(rawCookies: string): Promise<User> {
   const cookies = Object.fromEntries(
@@ -95,7 +120,16 @@ async function checkSession(rawCookies: string): Promise<User> {
 
 // handle route validation for nginx audio
 app.get('/auth', async (req, res) => {
-  await checkSession(req.headers.cookie || '')
+  const audioUID = (req.query as any).audioUID
+  const user = await checkSession(req.headers.cookie || '')
+  
+  // we need to check if the transcription belongs to the user
+  if (!user.admin){
+    const owners = await DAO.transcriptions.findTrandscriptionOwners(audioUID)
+    if (!owners.find(o => o.id == user.id))
+      throw new ForbiddenException(`You are not allowed to access this transcription`)
+  }
+
   return res.status(204).send()
 })
 

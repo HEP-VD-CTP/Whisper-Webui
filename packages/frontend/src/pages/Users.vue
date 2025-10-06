@@ -284,7 +284,7 @@ const userSelected: Ref<User> = ref(null)
 const stats: Ref<UsersStats> = ref({total: 0, archived: 0, blocked: 0})
 
 const page: Ref<number> = ref(1)
-const pageSize: number = 2
+const pageSize: number = 25
 const hasMore: Ref<boolean> = ref(false)
 
 async function createNewUser(): Promise<void> {
@@ -298,7 +298,14 @@ async function createNewUser(): Promise<void> {
       pwd: newPassword.value
     })
 
-    addUserDialog.value = false
+    newFirstname.value = ''
+    newLastname.value = ''
+    newEmail.value = ''
+    newPassword.value = ''
+
+    q.notify({ color: 'positive', message: t('users.user_added'), position: 'top', group: false })
+
+    //addUserDialog.value = false
   }
   catch(err){
     if (err?.data?.httpStatus == 409)

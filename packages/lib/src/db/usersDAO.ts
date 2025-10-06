@@ -114,8 +114,8 @@ export async function searchUsers(term: string, page: number = 1, pageSize: numb
   return await db.selectFrom('users')
     .selectAll()
     .where(sql<SqlBool>`
-      MATCH(firstname, lastname, email) AGAINST (${term})
-      OR id = ${typeof term === 'string' ? Buffer.from(term, 'hex') : term}
+      id = ${typeof term === 'string' ? Buffer.from(term, 'hex') : term}
+      OR MATCH(firstname, lastname, email) AGAINST (${term})
     `)
     .orderBy('firstname', 'asc')
     .orderBy('lastname', 'asc')
@@ -148,7 +148,7 @@ export async function update(id: string | Buffer, user: UpdateUser): Promise<voi
     .where('id', '=', id)
     .execute()
                 
-  if (res[0].numUpdatedRows == BigInt(0))
+  if (!res[0].numUpdatedRows)
     throw new NotFoundException(`User not found`)
 }
 
@@ -181,7 +181,7 @@ export async function login(email: string, password: string): Promise<User> {
                         .execute()
 
   // we want to keep the only user that has not been archived
-  let user: User = null;
+  let user: User = null
   for (const u of users){
     if (u.archived === false) {
       user = u
@@ -196,7 +196,7 @@ export async function login(email: string, password: string): Promise<User> {
     throw new ForbiddenException(`User is blocked`)
 
   // check the user password
-  const signature = sign(password, user.salt);
+  const signature = sign(password, user.salt)
   if (signature !== user.pwd)
     throw new ForbiddenException(`Invalid password`)
 
