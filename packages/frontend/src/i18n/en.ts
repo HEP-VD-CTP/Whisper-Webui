@@ -22,6 +22,7 @@ const en: TranslationSchema = {
     wrong_input: `Wrong input`,
     error_message: `An error has occurred. Please try again later and contact support if the problem persists.`,
     load_more: `Load more`,
+    modify: `Modify`,
   },
   user: {
     firstname: `Firstname`,
@@ -79,6 +80,9 @@ const en: TranslationSchema = {
       You can add a new transcription using the <b>'+ Add Transcription'</b> button on the left panel.`,
   },
   transcription: {
+    modify_speakers: `Modify speakers`,
+    new_speaker: `New speaker`,
+    modify_speaker_description: `You can modify several speakers at once`,
     delete: {
       title: `Delete transcription`,
       message: `Are you sure you want to delete this transcription?`

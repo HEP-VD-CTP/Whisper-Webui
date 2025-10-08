@@ -20,6 +20,7 @@ export type TranslationSchema = {
     wrong_input: string,
     error_message: string,
     load_more: string,
+    modify: string
   },
   user: {
     firstname: string, 
@@ -69,6 +70,9 @@ export type TranslationSchema = {
     instructions: string
   },
   transcription: {
+    modify_speakers: string, 
+    new_speaker: string,
+    modify_speaker_description: string,
     delete: {
       title: string,
       message: string

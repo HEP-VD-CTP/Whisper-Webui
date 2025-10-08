@@ -12,7 +12,11 @@
     <h6><q-icon name="mdi-timer-sand" /> {{ t('transcription.error') }}</h6>
   </div>
   <div v-else>
-    <span class="text-weight-bold">{{ transcription.name }}</span> 
+    <div class="row justify-between items-center">
+      <span class="text-weight-bold">{{ transcription.name }}</span> 
+      <span><q-btn @click="modifySpeakersModal" flat round icon="mdi-account-voice"><q-tooltip>{{ t('transcription.modify_speakers') }}</q-tooltip></q-btn></span>
+    </div>
+    
     <div>
       <div class="q-mb-xl" id="editor" v-if="transcription.status == `done`">
         <q-page-sticky position="bottom-right" class="q-mr-xs">
@@ -20,6 +24,21 @@
             <q-tooltip anchor="center left" self="center right">{{ t('transcription.to_top') }}</q-tooltip>
           </q-btn>
         </q-page-sticky>
+
+          <q-dialog v-model="alertSpeakers">
+            <q-card>
+              <q-card-section><div class="text-h6">{{ t('transcription.modify_speakers') }}</div></q-card-section>
+              <q-card-section class="q-pt-none">
+                {{ t('transcription.modify_speaker_description') }}
+                <q-select v-model="oldSpeaker" :options="speakers" label="Speaker" />
+                <q-input v-model="newSpeaker" :label="t('transcription.new_speaker')" @keyup.enter="modifySpeakers" />
+              </q-card-section>
+              <q-card-actions align="right">
+                <q-btn flat :label="t('misc.close')" color="primary" v-close-popup />
+                <q-btn flat :label="t('misc.modify')" color="pink" @click="modifySpeakers" />
+              </q-card-actions>
+            </q-card>
+          </q-dialog>
 
         <div 
           v-for="(segment, segIdx) in segments" :key="segIdx"
@@ -118,6 +137,10 @@ const totalAudioDuration: Ref<number> = ref(0)
 const playing: Ref<boolean> = ref(false)
 const pageScrolled: Ref<boolean> = ref(false)
 const loaded: Ref<boolean> = ref(false)
+const speakers: Ref<Array<string>> = ref([]);
+const alertSpeakers: Ref<boolean> = ref(false);
+const oldSpeaker: Ref<string> = ref(``);
+const newSpeaker: Ref<string> = ref(``);
 
 type SegmentHTML = {
   start: number,
@@ -386,6 +409,22 @@ function secondsToTime(seconds: number): string {
 
 function pasting(e: ClipboardEvent): void {
   e.preventDefault();
+}
+
+function modifySpeakersModal(){
+  speakers.value = [...new Set(segments.value.map(paragraph => paragraph.speaker))]
+  oldSpeaker.value = speakers.value[0]
+  newSpeaker.value = ``
+  alertSpeakers.value = true
+}
+
+async function modifySpeakers(){
+  for (const paragraph of segments.value)
+    if (paragraph.speaker == oldSpeaker.value)
+      paragraph.speaker = newSpeaker.value;
+
+  alertSpeakers.value = false;
+  triggerTranscriptionUpdate();
 }
 
 onMounted(async () => {

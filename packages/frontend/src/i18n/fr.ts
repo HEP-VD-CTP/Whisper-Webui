@@ -22,6 +22,7 @@ const fr: TranslationSchema = {
     wrong_input: `Mauvaise entrée`,
     error_message: `Une erreur s'est produite. Veuillez réessayer plus tard et contacter le support si le problème persiste.`,
     load_more: `Charger plus`,
+    modify: `Modifier`,
   },
   user: {
     firstname: `Prénom`,
@@ -79,6 +80,9 @@ const fr: TranslationSchema = {
       Vous pouvez voir les détails d'une transcription en cliquant dessus dans le panneau de gauche.`,
   },
   transcription: {
+    modify_speakers: `Modifier les speakers`,
+    new_speaker: `Nouveau speaker`,
+    modify_speaker_description: `Vous pouvez modifier ici plusieurs speakers simultanément.`,
     delete: {
       title: `Supprimer la transcription`,
       message: `Êtes-vous sûr de vouloir supprimer cette transcription ?`
