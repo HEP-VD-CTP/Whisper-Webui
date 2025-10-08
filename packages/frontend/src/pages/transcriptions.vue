@@ -87,12 +87,12 @@
   </q-dialog>
 
   <q-page class="q-pa-xs" :style="`${$q.screen.width >= 900 ? `width:900px` : `width:${$q.screen.width}px`};border:0px solid red`">
-    <router-view />
+    <router-view  />
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, onBeforeMount } from 'vue'
 import { type Ref } from 'vue'
 import { whisperStore } from 'stores/WhisperStore'
 import { useI18n } from 'vue-i18n'
@@ -297,6 +297,10 @@ function openWebSocket() {
   }
 }
 
+onBeforeMount(() => {
+  if (store.getUser() == null)
+    return router.push('/login')
+})
 
 onMounted(async () => {
   openWebSocket()
