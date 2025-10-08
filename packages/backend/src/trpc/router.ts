@@ -1,7 +1,6 @@
 import { initTRPC } from '@trpc/server'
 import { set, z } from 'zod'
 import superjson from 'superjson'
-//import { OperationMeta } from 'openapi-trpc'
 import DAO from '@whisper-webui/lib/src/db/DAO.ts'
 import store from '@whisper-webui/lib/src/db/store.ts'
 import lib from '@whisper-webui/lib/src/lib/index.ts'

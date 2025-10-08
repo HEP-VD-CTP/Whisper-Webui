@@ -112,6 +112,7 @@ services:
     expose: 
       - 9001
     volumes:
+      - ${WHISPER_WEBUI_VOLUME_PATH}/logs:/data/logs
       - ./packages/ws:/app_dev/packages/ws
       - ./packages/lib:/app_dev/packages/lib
     networks:

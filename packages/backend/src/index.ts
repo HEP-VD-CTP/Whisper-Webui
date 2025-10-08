@@ -19,7 +19,6 @@ import {
   type AppRouter,
 } from 'src/trpc/router.ts'
 
-import logger from 'src/lib/logger.ts'
 import { createContext } from 'src/trpc/context.ts'
 import store from '@whisper-webui/lib/src/db/store.ts'
 import { 
@@ -31,6 +30,7 @@ import lib from '@whisper-webui/lib/src/lib/index.ts'
 import DAO from '@whisper-webui/lib/src/db/DAO.ts'
 import { User } from '@whisper-webui/lib/src/types/kysely.ts'
 import { type ExternalQuery } from '@whisper-webui/lib/src/types/types.ts'
+import logger from '@whisper-webui/lib/src/lib/logger.ts'
 
 
 const PORT: number = 9000
@@ -231,19 +231,16 @@ app.route({
 
 try {
   await app.listen({ host:`0.0.0.0`, port: PORT })
-  logger.info(`startup`, `Backend is listening on port ${PORT} in ${process.env.NODE_ENV} mode`)
+  logger.info(`backend_startup`, `Backend is listening on port ${PORT} in ${process.env.NODE_ENV} mode`)
 } 
 catch (err) {
-  
-  logger.error('startup', 'Backend failed to start', err instanceof Error ? err : new Error(String(err)))
+  logger.error('backend_startup', 'Backend failed to start', err instanceof Error ? err : new Error(String(err))) 
   process.exit(1)
 }
 
-
-// to-do: log 
 process.on('uncaughtException', (error) => {
-  logger.error('uncaughtException', 'Uncaught Exception', error)
+  logger.error('backend_uncaughtException', 'Uncaught Exception', error)
 })
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error('unhandledRejection', 'Unhandled Rejection', reason instanceof Error ? reason : new Error(String(reason)))
+  logger.error('backend_unhandledRejection', 'Unhandled Rejection', reason instanceof Error ? reason : new Error(String(reason)))
 })

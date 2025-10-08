@@ -7,6 +7,7 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import { type Segment, type StatusUpdate } from '@whisper-webui/lib/src/types/types.ts'
 import { type Transcription } from '@whisper-webui/lib/src/types/kysely.ts'
+import logger from '@whisper-webui/lib/src/lib/logger.ts'
 
 const execFileAsync = promisify(execFile)
 
@@ -186,7 +187,7 @@ worker.use(async (id: string) => {
     store.publish('updates', JSON.stringify(statusUpdate))
   }
   catch(err){
-    console.error(err)
+    logger.error('Worker', `Worker failed for ${id}`, err instanceof Error ? err : new Error(String(err))) 
 
     // send status update to all owners
     statusUpdate.status = 'error'
@@ -198,6 +199,12 @@ worker.use(async (id: string) => {
   
 })
 
+process.on('uncaughtException', (error) => {
+  logger.error('worker_uncaughtException', 'Uncaught Exception', error)
+})
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('worker_unhandledRejection', 'Unhandled Rejection', reason instanceof Error ? reason : new Error(String(reason)))
+})
 
 
 

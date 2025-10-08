@@ -4,7 +4,7 @@ import fastifyCookie from '@fastify/cookie'
 import fastifyCors from '@fastify/cors'
 import store from '@whisper-webui/lib/src/db/store.ts'
 import { type StatusUpdate } from '@whisper-webui/lib/src/types/types.ts'
-
+import logger from '@whisper-webui/lib/src/lib/logger.ts'
 
 
 const PORT: number = 9001
@@ -100,15 +100,19 @@ setInterval(() => {
   }
 }, 25000)
 
-await app.listen({ port: PORT, host: `0.0.0.0` })
-console.log(`# Start WS server on port ${PORT}`)
+try {
+  await app.listen({ host:`0.0.0.0`, port: PORT })
+  logger.info(`ws_startup`, `WS is listening on port ${PORT} in ${process.env.NODE_ENV} mode`)
+} 
+catch (err) {
+  logger.error('ws_startup', 'WS failed to start', err instanceof Error ? err : new Error(String(err))) 
+  process.exit(1)
+}
   
 
-// to-do: log 
 process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error)
+  logger.error('ws_uncaughtException', 'Uncaught Exception', error)
 })
-
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason)
+  logger.error('ws_unhandledRejection', 'Unhandled Rejection', reason instanceof Error ? reason : new Error(String(reason)))
 })
