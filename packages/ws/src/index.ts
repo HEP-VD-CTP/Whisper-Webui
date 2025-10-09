@@ -72,9 +72,12 @@ store.subscribe('updates', async (message: string) => {
   const statusUpdate: StatusUpdate = JSON.parse(message)
   for (const cli of app.websocketServer.clients as any) {
     try {
+      
       // send only to clients that are owners of the transcription
-      if (cli.user && statusUpdate.owners.some(o => o.id == cli.user.id))
-        cli.send(message)
+      if (cli.user)
+        for (const owner of statusUpdate.owners)
+          if (owner.id == cli.user.id)
+            cli.send(message)
     }
     catch(err){
       console.error(err)

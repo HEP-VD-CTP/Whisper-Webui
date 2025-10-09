@@ -1,5 +1,7 @@
 FROM node:22.13.1-alpine AS base
 
+COPY ./packages/backend/start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
 RUN npm install -g tsx
 
 FROM base AS dev

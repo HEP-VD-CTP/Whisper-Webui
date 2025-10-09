@@ -1,5 +1,8 @@
 FROM node:22.13.1-bullseye AS base
 
+COPY ./packages/worker/start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
+
 # install Python and system dependencies
 RUN apt-get update && apt-get install -y python3 python3-pip ffmpeg
 RUN npm install -g tsx

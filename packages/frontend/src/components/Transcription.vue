@@ -117,7 +117,7 @@ import trpc from 'src/lib/trpc'
 import lib from 'src/lib/index'
 
 
-const parser: DOMParser = new DOMParser();
+const parser: DOMParser = new DOMParser()
 
 const { t } = useI18n()
 const q: QVueGlobals = useQuasar()
@@ -137,10 +137,10 @@ const totalAudioDuration: Ref<number> = ref(0)
 const playing: Ref<boolean> = ref(false)
 const pageScrolled: Ref<boolean> = ref(false)
 const loaded: Ref<boolean> = ref(false)
-const speakers: Ref<Array<string>> = ref([]);
-const alertSpeakers: Ref<boolean> = ref(false);
-const oldSpeaker: Ref<string> = ref(``);
-const newSpeaker: Ref<string> = ref(``);
+const speakers: Ref<Array<string>> = ref([])
+const alertSpeakers: Ref<boolean> = ref(false)
+const oldSpeaker: Ref<string> = ref(``)
+const newSpeaker: Ref<string> = ref(``)
 
 type SegmentHTML = {
   start: number,

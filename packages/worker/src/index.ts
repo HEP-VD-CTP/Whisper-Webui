@@ -18,7 +18,7 @@ const threads: string = process.env['WHISPER_CPU_THREADS'] || '4'
 const batch_size: string = process.env['BATCH_SIZE'] || '8'
 const device: string = process.env['WHISPER_DEVICE'] || 'cpu'
 if(!hfToken){
-  console.error('No HF_TOKEN provided in environment variables. Exit.')
+  logger.error('worker_hf_token', 'No hf token', new Error('No HF_TOKEN provided in environment variables. Exit.'))
   process.exit(1)
 }
 
@@ -41,11 +41,11 @@ worker.use(async (id: string) => {
     const transcription: Transcription = await DAO.transcriptions.findById(id)
     
     statusUpdate.owners = (await DAO.transcriptions.findTrandscriptionOwners(id)).map(x => ({
-        id: typeof x.id === 'string' ? x.id : (x.id instanceof Buffer ? x.id.toString('hex') : ''),
-        email: x.email || '',
-        firstName: x.firstname || '',
-        lastName: x.lastname || ''
-      }))
+      id: typeof x.id == 'string' ? x.id : x.id?.toString('hex') || '',
+      email: x.email || '',
+      firstName: x.firstname || '',
+      lastName: x.lastname || ''
+    }))
 
     console.log('Transcription:')
     console.log(transcription)
@@ -123,6 +123,8 @@ worker.use(async (id: string) => {
     // get the json and prepare the segments
     const jsonPath = path.join(destFolder, `${path.parse(transcription.file).name}.json`)
     const data = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'))
+
+    // now we're going to build the segments from the word segments
 
     // bag of words
     const words = data['word_segments'].map((x: any) => {

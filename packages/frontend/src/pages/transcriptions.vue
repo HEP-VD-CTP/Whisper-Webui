@@ -276,7 +276,7 @@ function openWebSocket() {
 
   ws.onmessage = (event) => {
     const statusUpdate = JSON.parse(event.data) as StatusUpdate
-    
+
     // update the transcription status only in the list
     for (const trs of transcriptions.value){
       if (trs.id == statusUpdate.transcriptionId){

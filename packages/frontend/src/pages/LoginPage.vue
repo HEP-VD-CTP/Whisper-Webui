@@ -44,8 +44,8 @@ const router: Router = useRouter()
 const { t } = useI18n()
 const store = whisperStore()
 
-const email      = ref(`john.doe@example.com`)
-const password   = ref(`123456`)
+const email      = ref(``)
+const password   = ref(``)
 const isPwd      = ref(true)
 const btnLoading = ref(false)
 
