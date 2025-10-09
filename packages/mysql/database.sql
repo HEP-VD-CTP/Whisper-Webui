@@ -63,7 +63,7 @@ CREATE TABLE `queries` (
   `id` binary(24) NOT NULL,
   `route` varchar(4096) NOT NULL,
   `userid` varchar(24) DEFAULT NULL,
-  `ip` varchar(15) NOT NULL,
+  `ip` varchar(255) NOT NULL,
   `status` smallint NOT NULL,
   `headers` text NOT NULL,
   `method` varchar(5) NOT NULL,
