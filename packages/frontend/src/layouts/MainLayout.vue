@@ -146,6 +146,8 @@ onServerPrefetch(async () => {
   store.setDomain(process.env.DOMAIN)
   store.setOrganization(process.env.ORGANIZATION)
 
+  console.log(`DOMAIN`)
+  console.log(store.getDomain())
 
   // check the user session
   const sessionId = q.cookies.get('sessionId')

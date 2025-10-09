@@ -66,7 +66,7 @@ services:
     environment:
       - NODE_ENV=${WHISPER_WEBUI_ENV}
       - ORGANIZATION=${ORGANIZATION}
-      - DOMAIN=${DOMAIN}:${NGINX_HTTPS_PORT}
+      - DOMAIN=${DOMAIN}
       - TITLE=${FRONTEND_TITLE}
     expose:
       - "8000"  # http
