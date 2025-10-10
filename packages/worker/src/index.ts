@@ -127,31 +127,34 @@ worker.use(async (id: string) => {
     // now we're going to build the segments from the word segments
 
     // bag of words
-    const words = data['word_segments'].map((x: any) => {
-      return {
-        start: x.start,
-        end: x.end,
-        text: x.word,
-        speaker: x.speaker
+    const words = []
+    for (const segment of  data['segments']){
+      const speaker = segment['speaker'] || 'UNKNOWN_SPEAKER'
+      for (const word of segment['words']){
+        words.push({
+          start: word.start,
+          end: word.end,
+          text: word.word,
+          speaker
+        })
       }
-    })
+    }
 
     // ensure first word has start/end and a speaker
     if (words.length) {
-      if (!words[0].start) 
+      if (words[0].start === undefined || words[0].start === null)
         words[0].start = 0
-      if (!words[0].end) 
+      if (words[0].end === undefined || words[0].end === null)
         words[0].end = 0.1
-      if (!words[0].speaker) 
+      if (words[0].speaker === undefined || words[0].speaker === null || words[0].speaker === '')
         words[0].speaker = 'UNKNOWN_SPEAKER'
     }
-    // ensure all words have start/end and a speaker
     for (let i = 1; i < words.length; i++) {
-      if (!words[i].start) 
+      if (words[i].start === undefined || words[i].start === null)
         words[i].start = words[i-1].start
-      if (!words[i].end) 
+      if (words[i].end === undefined || words[i].end === null)
         words[i].end = words[i-1].end
-      if (!words[i].speaker) 
+      if (words[i].speaker === undefined || words[i].speaker === null || words[i].speaker === '')
         words[i].speaker = words[i-1].speaker
     }
 
