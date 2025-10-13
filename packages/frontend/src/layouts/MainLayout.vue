@@ -1,6 +1,6 @@
 <template>
   <q-no-ssr>
-    <q-layout view="hHh Lpr lFf" >
+    <q-layout v-if="ready" view="hHh Lpr lFf" >
       <q-header :reveal="false" :class="store.darkMode ? 'text-white bg-dark-page' : 'text-black bg-white'">
         <q-toolbar>
           <q-btn flat dense round icon="menu" aria-label="Menu" @click="store.toggleDrawer()"/>
@@ -118,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onServerPrefetch, onMounted, onBeforeMount } from 'vue'
+import { ref, onServerPrefetch, onMounted, onBeforeMount, nextTick } from 'vue'
 import type { Ref} from 'vue'
 import { useQuasar, QVueGlobals } from 'quasar'
 import { whisperStore } from 'stores/WhisperStore'
@@ -137,6 +137,7 @@ const settingsSelector: Ref<boolean> = ref(false)
 const router: Router = useRouter()
 
 const loaded: Ref<boolean> = ref(false)
+const ready: Ref<boolean> = ref(false)
 
 // this will be only executed on the server side
 onServerPrefetch(async () => {
@@ -148,9 +149,12 @@ onServerPrefetch(async () => {
 
   // check the user session
   const sessionId = q.cookies.get('sessionId')
-  if (!sessionId)  // if there is no current session provided
+  // if there is no current session provided
+  if (!sessionId){
+    store.setUser(null)
     return console.log(`NO SESSION ID`)
-
+  }  
+    
   // try to get the user session infos
   try {
     // we will try to get the user session using a regular http query 
@@ -208,9 +212,6 @@ function setLanguage(lang: string): void{
 }
 
 onBeforeMount(async () => { 
-  if (store.user == null && router.currentRoute.value.path != '/expired')
-    router.push('/login')
-    
   // if the language is null, we try to detect the user language
   if (!store.getLanguage()) {
     const languages = navigator.languages || [navigator.language]
@@ -227,10 +228,16 @@ onBeforeMount(async () => {
   }
   else 
     store.setDarkMode(store.getDarkMode())
+
 })
 
-onMounted(() => {
+onMounted(async () => {
+  ready.value = true
   q.dark.set(store.getDarkMode())
+  
+  if (store.user == null && router.currentRoute.value.path != '/expired')
+    await router.push('/login')
+  
   loaded.value = true
 })
  

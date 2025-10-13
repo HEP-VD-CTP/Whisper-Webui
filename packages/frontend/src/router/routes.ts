@@ -7,17 +7,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { 
-        path: '', 
+        path: '/', 
         component: () => import('pages/transcriptions.vue'),
-        beforeEnter: (to, from, next) => {
-          if (whisperStore().getUser() == null) {
-            return next('/login')
-          }
-          next()
-        },
         children: [
           {
-            path: '',
+            path: '/',
             component: () => import('components/WhisperLanding.vue'),
           },
           { 

@@ -119,9 +119,10 @@ function deleteTranscription(id: string){
 } 
 
 async function toPage(id: string, path: string){
-  router.push(`/transcriptions`)
-  await new Promise(resolve => setTimeout(resolve, 0))
-  router.push(path)
+  await router.push(`/transcriptions`)
+  store.setSelectedTranscriptionId(id)
+  //await new Promise(resolve => setTimeout(resolve, 0))
+  await router.push(path)
 }
 
 async function fetchTranscriptions(reset = false) {

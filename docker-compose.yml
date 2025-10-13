@@ -124,11 +124,13 @@ services:
     entrypoint: /usr/local/bin/start.sh
 
   worker:
-    container_name: whisper-webui-worker
+    #container_name: whisper-webui-worker
     build:
       context: .
       dockerfile: ./packages/worker/Dockerfile
       target: ${WHISPER_WEBUI_ENV}
+    deploy: 
+      replicas: ${WORKER_REPLICAS}
     environment:
       - NODE_ENV=${WHISPER_WEBUI_ENV}
       - MYSQL_URL=${MYSQL_URL}

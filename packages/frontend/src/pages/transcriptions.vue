@@ -223,10 +223,10 @@ const lang: Ref<Record<string, string>> = ref(langOptions.values[0])
 
 async function toPage(id: string, path: string){
   store.setSelectedTranscriptionId(null)
-  router.push(`/`)
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await router.push(`/`)
+  //await new Promise(resolve => setTimeout(resolve, 0))
   store.setSelectedTranscriptionId(id)
-  router.push(path)
+  await router.push(path)
 }
 
 function deleteTranscription(id: string){
