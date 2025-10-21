@@ -126,7 +126,7 @@ async function checkSession(rawCookies: string): Promise<User> {
 
 // handle route validation for nginx audio
 app.get('/auth', async (req, res) => {
-  const audioUID = (req.query as any).audioUID
+  const audioUID = req.headers['x-audio-uid'] as string
   const user = await checkSession(req.headers.cookie || '')
   
   // we need to check if the transcription belongs to the user
