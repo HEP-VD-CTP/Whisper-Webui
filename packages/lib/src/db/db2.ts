@@ -11,6 +11,7 @@ const dialect = new MysqlDialect({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
+    timezone: 'Z',
     
     // This function will take a look at each field of the return
     // query data and apply transformations to it.

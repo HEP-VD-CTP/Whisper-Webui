@@ -92,6 +92,7 @@ export default defineConfig((ctx) => {
       open: false, // opens browser window automatically
       port: 8000 ,
       host: '0.0.0.0',
+      allowedHosts: true
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
