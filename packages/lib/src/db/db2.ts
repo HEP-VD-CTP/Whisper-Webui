@@ -17,16 +17,13 @@ const dialect = new MysqlDialect({
     // query data and apply transformations to it.
     typeCast(field, next) {
       // turn binary id to hex string
-      if (field.name == 'id' && field.type === 'STRING'){
+      if (field.name == 'id' && field.type === 'STRING')
         return field.buffer().toString(`hex`).toUpperCase()
-      }
       // turn tinyint(1) to boolean
-      else if (field.type === 'TINY' && field.length === 1) {
+      else if (field.type === 'TINY' && field.length === 1)
         return field.string() === '1'
-      }
-      else {
-        return next()
-      }
+      
+      return next()
     },
   })
 })

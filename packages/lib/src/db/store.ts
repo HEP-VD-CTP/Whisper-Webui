@@ -17,7 +17,7 @@ const pubsubRedis = new IORedis({
 const cbs: Record<string, Array<(message: string) => Promise<void>>> = {}
 
 // check for incoming messages
-pubsubRedis.on('message', (channel, message) => {
+pubsubRedis.on('message', (channel: string, message: string) => {
   // check if the channel exists and call all the callbacks
   if (cbs[channel]) 
     for (const cb of cbs[channel]) 
@@ -54,7 +54,7 @@ async function enqueue(queueName: string, value: string): Promise<void> {
   return await redis.lpush(`queue:${queueName}`, value)
 }
 
-async function dequeue(queueName: string, timeoutSeconds: number = 60): Promise<string | null> {
+async function dequeue(queueName: string, timeoutSeconds: number = 60): Promise<string|null> {
   const result = await redis.brpop(`queue:${queueName}`, timeoutSeconds)
   return result ? result[1] : null
 }

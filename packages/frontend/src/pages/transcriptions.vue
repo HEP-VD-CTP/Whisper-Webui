@@ -67,7 +67,7 @@
         <p v-html="t('transcription.select_file_descritpion')"></p>
         
         <q-uploader flat bordered auto-upload style="max-width: 300px" 
-          :url="`https://${store.getDomain()}/api/transcription/upload?lang=${lang.value}`"
+          :url="`https://${store.getDomain()}/api/transcription/upload?lang=${lang.value}&userLang=${store.getLanguage()}`"
           :with-credentials="true"
           :multiple="true"
           :accept="`video/*, audio/*, .mp3, .mp4, .wav, .flac, .ogg, .m4a, .aac, .mpg, .mpeg, .avi, .webm, .mkv, .mov, .wmv`"            

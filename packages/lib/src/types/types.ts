@@ -37,3 +37,8 @@ export type ExternalQuery = {
   status?: number,
   duration: number
 }
+
+export type transcriptionQueued = {
+  lang: string, 
+  uid: string
+}

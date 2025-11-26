@@ -5,7 +5,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
-import { type Segment, type StatusUpdate } from '@whisper-webui/lib/src/types/types.ts'
+import { type transcriptionQueued, type Segment, type StatusUpdate } from '@whisper-webui/lib/src/types/types.ts'
 import { type Transcription } from '@whisper-webui/lib/src/types/kysely.ts'
 import logger from '@whisper-webui/lib/src/lib/logger.ts'
 
@@ -27,7 +27,11 @@ console.log(`# Whisper Worker started #`)
 console.log(`##########################`)
 
 // get transcription id from the queue one by one and process it
-worker.use(async (id: string) => {
+worker.use(async (transcriptionQueuedString: string) => {
+  // parse the transcriptionQueued object
+  const t: transcriptionQueued = JSON.parse(transcriptionQueuedString)
+  const id: string = t.uid
+
   // initial status update
   const statusUpdate: StatusUpdate = {
     transcriptionId: id,
@@ -202,6 +206,8 @@ worker.use(async (id: string) => {
     await DAO.transcriptions.updateTranscription(id, { status: 'error', comment: (err instanceof Error ? err.message : String(err))})
   }
   
+  // send email
+  store.enqueue('TranscriptionEmails', transcriptionQueuedString)
 })
 
 process.on('uncaughtException', (error) => {

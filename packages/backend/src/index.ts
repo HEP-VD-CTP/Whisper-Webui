@@ -29,7 +29,10 @@ import {
 import lib from '@whisper-webui/lib/src/lib/index.ts'
 import DAO from '@whisper-webui/lib/src/db/DAO.ts'
 import { User } from '@whisper-webui/lib/src/types/kysely.ts'
-import { type ExternalQuery } from '@whisper-webui/lib/src/types/types.ts'
+import { 
+  type transcriptionQueued, 
+  type ExternalQuery 
+} from '@whisper-webui/lib/src/types/types.ts'
 import logger from '@whisper-webui/lib/src/lib/logger.ts'
 
 
@@ -154,12 +157,16 @@ app.route({
                  'it', 'ja', 'jw', 'ka', 'kk', 'km', 'kn', 'ko', 'la', 'lb', 'ln', 'lo', 'lt', 'lv', 'mg', 'mi', 'mk', 'ml', 'mn', 'mr',
                  'ms', 'mt', 'my', 'ne', 'nl', 'nn', 'no', 'oc', 'pa', 'pl', 'ps', 'pt', 'ro', 'ru' ,'sa', 'sd', 'si', 'sk', 'sl', 'sn', 'so',
                  'sq', 'sr', 'su', 'sv', 'sw', 'ta', 'te', 'tg', 'th', 'tk', 'tl', 'tr', 'tt', 'uk', 'ur', 'uz', 'vi', 'yi', 'yo', 'yue', 'zh'] 
-        } 
+        },
+        userLang: { 
+          type: 'string',
+          enum: ['en', 'fr']
+        }
       },
-      required: ['lang'],
+      required: ['lang', 'userLang'],
     },
   },
-  handler: async (req: FastifyRequest<{ Querystring: { lang: string }}>, res) => {
+  handler: async (req: FastifyRequest<{ Querystring: { lang: string, userLang: string }}>, res) => {
     // get the user
     const user: User = await checkSession(req.headers.cookie || '')
 
@@ -221,7 +228,8 @@ app.route({
     })
 
     // send the transcription into the queue
-    await store.enqueue('transcriptions', uid)
+    const t: transcriptionQueued = { lang: req.query.userLang, uid: uid }
+    await store.enqueue('transcriptions', JSON.stringify(t))
 
     // wait 1 second before sending the response
     await new Promise(resolve => setTimeout(resolve, 1000))
