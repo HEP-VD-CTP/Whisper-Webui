@@ -11,7 +11,7 @@
         interviews et discussions en documents écrits, facilitant l'accès et le partage de l'information.<br/><br/>
   
         Nous tenons à vous assurer que la protection de vos données est assurée.<br/>
-        Toutes les transcriptions sont effectuées directement sur nos, garantissant que vos informations ne quittent jamais notre infrastructure sécurisée.<br/><br/>
+        Toutes les transcriptions sont effectuées directement sur nos serveurs, garantissant que vos informations ne quittent jamais notre infrastructure sécurisée.<br/><br/>
   
         Pour commencer, veuillez ajouter un nouveau fichier à transcrire dans le menu de gauche <q-icon name="add"/>
       </div>

@@ -5,6 +5,10 @@
           <div class="row justify-center text-h6">{{ $t('login_page.login_page_title') }}</div>
         </q-card-section>
         
+        <p class="text-center q-mt-lg q-mb-xl" v-if="store.getOauth2Label() != '' || store.getOauth2Label() != null">
+          <q-btn @click="OauthLogin" color="primary" :label="store.getOauth2Label()" icon-right="mdi-microsoft"/>
+        </p>
+
         <q-separator size="2px" inset />
 
         <q-card-section class="q-pt-none q-mt-md">
@@ -50,6 +54,10 @@ const isPwd      = ref(true)
 const btnLoading = ref(false)
 
 const q: QVueGlobals = useQuasar() 
+
+function OauthLogin(){
+  window.location.href = store.getOauth2Link()
+}
 
 async function login(): Promise<void> {
   btnLoading.value = true

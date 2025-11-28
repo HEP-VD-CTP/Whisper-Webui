@@ -4,7 +4,7 @@ import urlData from '@fastify/url-data'
 import multipart from '@fastify/multipart'
 import { FastifyRequest } from 'fastify'
 import fastifyCors from '@fastify/cors'
-
+import jwt from 'jsonwebtoken'
 import path from 'node:path'
 import { pipeline } from 'stream/promises'
 import fs from 'node:fs'
@@ -24,7 +24,8 @@ import store from '@whisper-webui/lib/src/db/store.ts'
 import { 
   UnauthorizedException, 
   BadRequestException,
-  ForbiddenException
+  ForbiddenException,
+  NotFoundException
 } from '@whisper-webui/lib/src/db/exceptions.ts'
 import lib from '@whisper-webui/lib/src/lib/index.ts'
 import DAO from '@whisper-webui/lib/src/db/DAO.ts'
@@ -37,6 +38,10 @@ import logger from '@whisper-webui/lib/src/lib/logger.ts'
 
 
 const PORT: number = 9000
+const Oauth2Token: string = process.env.OAUTH2_TOKEN || ''
+const domain: string = process.env.DOMAIN || 'localhost:8443'
+const exp: number = parseInt(process.env.USER_SESSION_EXP_TIME || '86400')
+
 
 const app = Fastify({ 
   logger: false,
@@ -142,6 +147,87 @@ app.get('/auth', async (req, res) => {
   return res.status(204).send()
 })
 
+// handle authentication from external service
+if (Oauth2Token != '') {
+  app.get('/OAuth2', {
+    schema: {
+      querystring: {
+        type: 'object',
+        properties: {
+          data: { type: 'string' }
+        },
+        required: ['data']
+      }
+    }
+  },
+  async (req, res) => {
+    const data = (req.query as { data: string }).data.trim()
+    
+    // verify the jwt
+    try {
+      jwt.verify(data, Oauth2Token, { algorithms: ['HS256'] })
+    } 
+    catch {
+      throw new UnauthorizedException('Invalid JWT')
+    }
+
+    // turn data into json
+    const base64 = data.split('.')[1]
+    let val: any
+    try {
+      val = JSON.parse(Buffer.from(base64, 'base64').toString('utf8'))
+    } 
+    catch {
+      throw new BadRequestException('Invalid base64 or JSON')
+    }
+
+    // validate structure
+    if (typeof val !== 'object' ||
+        typeof val.firstname !== 'string' ||
+        typeof val.lastname !== 'string' ||
+        typeof val.email !== 'string' ||
+        !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,63}$/.test(val.email))
+      throw new BadRequestException('Invalid data structure')
+    
+    // try to find the user by email
+    try {
+      await DAO.users.findByEmail(val.email)
+    }
+    catch(err){
+      if (err instanceof NotFoundException){
+        // create the user
+        await DAO.users.createUser({
+          id: lib.uid.genUID(),
+          firstname: val.firstname,
+          lastname: val.lastname,
+          email: val.email,
+          admin: false,
+          archived: false,
+          blocked: false,
+          created_at: new Date(),
+        })
+      }
+      else 
+        throw err
+    }
+
+    // create a session for the user
+    const sessionId = lib.uid.genUID()
+    const user = await DAO.users.findByEmail(val.email)
+    await store.createSession(sessionId, user, exp)
+
+    res.setCookie('sessionId', sessionId, {
+      httpOnly: true,
+      path: '/',
+      maxAge: exp,
+      secure: true,
+      sameSite: 'none',
+    })
+
+    return res.redirect(`https://${domain}`)
+  })
+}
+
 // Handle whisper video upload
 app.route({
   method:`POST`,
@@ -153,7 +239,7 @@ app.route({
         lang: { 
           type: 'string', 
           enum: ['af', 'am', 'ar', 'as', 'az', 'ba', 'be', 'bg', 'bn', 'bo', 'br', 'bs', 'ca', 'cs', 'cy', 'da', 'de', 'el', 'en',
-                 'es' , 'et', 'eu', 'fa', 'fi', 'fo', 'fr', 'gl', 'gu', 'ha', 'haw', 'he', 'hi', 'hr', 'ht', 'hu', 'hy', 'id', 'is',
+                 'es', 'et', 'eu', 'fa', 'fi', 'fo', 'fr', 'gl', 'gu', 'ha', 'haw', 'he', 'hi', 'hr', 'ht', 'hu', 'hy', 'id', 'is',
                  'it', 'ja', 'jw', 'ka', 'kk', 'km', 'kn', 'ko', 'la', 'lb', 'ln', 'lo', 'lt', 'lv', 'mg', 'mi', 'mk', 'ml', 'mn', 'mr',
                  'ms', 'mt', 'my', 'ne', 'nl', 'nn', 'no', 'oc', 'pa', 'pl', 'ps', 'pt', 'ro', 'ru' ,'sa', 'sd', 'si', 'sk', 'sl', 'sn', 'so',
                  'sq', 'sr', 'su', 'sv', 'sw', 'ta', 'te', 'tg', 'th', 'tk', 'tl', 'tr', 'tt', 'uk', 'ur', 'uz', 'vi', 'yi', 'yo', 'yue', 'zh'] 

@@ -100,7 +100,6 @@ function setSessionCookie(ctx: any, sessionId: string, exp: number){
     maxAge: exp,
     secure: true,
     sameSite: 'None',
-
   })
 }
 

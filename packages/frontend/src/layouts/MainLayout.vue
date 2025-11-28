@@ -146,6 +146,8 @@ onServerPrefetch(async () => {
   store.setTitle(process.env.TITLE)
   store.setDomain(process.env.DOMAIN)
   store.setOrganization(process.env.ORGANIZATION)
+  store.setOauth2Label(process.env.OAUTH2_LABEL || '')
+  store.setOauth2Link(process.env.OAUTH2_LINK || '')
 
   // check the user session
   const sessionId = q.cookies.get('sessionId')

@@ -116,7 +116,6 @@ export const whisperStore = defineStore('whisper', () => {
   // #############################
   // # selected transcription ID #
   // #############################
-  //
   const selectedTranscriptionId: Ref<string|null> = ref(null)
 
   function getSelectedTranscriptionId(): string|null {
@@ -126,6 +125,29 @@ export const whisperStore = defineStore('whisper', () => {
   function setSelectedTranscriptionId(newId: string|null): void {
     selectedTranscriptionId.value = newId
   }
+
+  // ##########
+  // # OAuth2 #
+  // ##########
+  const oauth2Label: Ref<string> = ref('')
+  function getOauth2Label(): string {
+    return oauth2Label.value
+  }
+
+  function setOauth2Label(newLabel: string): void {
+    oauth2Label.value = newLabel
+  }
+
+
+  const oauth2Link: Ref<string> = ref('')
+  function getOauth2Link(): string {
+    return oauth2Link.value
+  }
+
+  function setOauth2Link(newLink: string): void {
+    oauth2Link.value = newLink
+  }
+
 
   return {
     user,
@@ -163,7 +185,15 @@ export const whisperStore = defineStore('whisper', () => {
 
     selectedTranscriptionId,
     getSelectedTranscriptionId,
-    setSelectedTranscriptionId
+    setSelectedTranscriptionId,
+
+    oauth2Label,
+    getOauth2Label,
+    setOauth2Label,
+
+    oauth2Link,
+    getOauth2Link,
+    setOauth2Link,
   }
 })
 

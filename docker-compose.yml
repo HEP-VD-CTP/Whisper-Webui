@@ -70,6 +70,8 @@ services:
       - ORGANIZATION=${ORGANIZATION}
       - DOMAIN=${DOMAIN}
       - TITLE=${FRONTEND_TITLE}
+      - OAUTH2_LABEL=${OAUTH2_LABEL}
+      - OAUTH2_LINK=${OAUTH2_LINK}
     expose:
       - "8000"  # http
       - "24678" # quasar ws dev port
@@ -95,6 +97,8 @@ services:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - OAUTH2_TOKEN=${OAUTH2_TOKEN}
+      - DOMAIN=${DOMAIN}
     expose: 
       - 9000 
     volumes:
